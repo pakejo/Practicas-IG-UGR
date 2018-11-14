@@ -18,7 +18,6 @@ GrafoParam::GrafoParam()
       cilindro = new Cilindro("plys/cilindro.ply");
       cubo = new Cubo();
       panel = new Cubo();
-      cubo2 = new Cubo();
       esfera = new Esfera("plys/esfera.ply");
       cono = new Cono("plys/cono.ply");
 }

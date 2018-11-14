@@ -47,7 +47,6 @@ class GrafoParam
       // objetos tipo malla indexada (nodos terminales)
       Cubo *cubo = nullptr;
       Cubo *panel = nullptr;
-      Cubo *cubo2 = nullptr;
       Cilindro *cilindro = nullptr;
       Esfera *esfera = nullptr;
       Cono *cono = nullptr;
