@@ -5,6 +5,33 @@
 #include "malla.h"
 #include "jerarquico.h"
 
+
+class Luz
+{
+  private:
+
+    //Colores de la luz
+    float 
+    color_difuso[4],
+    color_especular[4],
+    color_ambiental[4];
+
+    //Posicion de la luz
+    float pos[4];
+
+  public:
+
+    Luz(float cdf[], float cef[], float caf[], float posf[]);
+
+    //Activacion de la iluminacion
+    void activar();
+
+    //Desactivacion de la iluminacion
+    void desactivar();
+    
+};
+
+
 class Escena
 {
 
@@ -47,6 +74,9 @@ private:
   ObjJerarquico *jerarquico = nullptr;
   Piramide *piramide = nullptr;
 
+  Luz *alfa = nullptr;
+  Luz *beta = nullptr;
+
 public:
   Escena();
   void inicializar(int UI_window_width, int UI_window_height);
@@ -62,4 +92,5 @@ public:
   //Animaciones
   void mgeDesocupado();
 };
+
 #endif

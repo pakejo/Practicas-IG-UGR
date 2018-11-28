@@ -15,11 +15,11 @@
 
 GrafoParam::GrafoParam()
 {
-      cilindro = new Cilindro("plys/cilindro.ply");
-      cubo = new Cubo();
-      panel = new Cubo();
-      esfera = new Esfera("plys/esfera.ply");
-      cono = new Cono("plys/cono.ply");
+      cilindro    = new Cilindro("plys/cilindro.ply");
+      cubo        = new Cubo();
+      panel       = new Cubo();
+      esfera      = new Esfera("plys/esfera.ply");
+      cono        = new Cono("plys/cono.ply");
 }
 // -----------------------------------------------------------------------------
 // actualizar valor efectivo de un parámetro (a partir de su valor no acotado)

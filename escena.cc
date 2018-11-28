@@ -18,16 +18,31 @@ Escena::Escena()
 
     ejes.changeAxisSize(5000);
 
+    //Datos de la iluminacion
+    float cdf_alfa[4] = {1.0,1.0,1.0,1.0}, 
+          caf_alfa[4] = {1.0,1.0,1.0,1.0},
+          cef_alfa[4] = {1.0,1.0,1.0,1.0},
+          pos_alfa[4] = {10.0,10.0,-10.0,0.0};
+
+    float cdf_beta[4] = {1.0,0.0,1.0,1.0}, 
+          caf_beta[4] = {1.0,1.0,1.0,1.0},
+          cef_beta[4] = {1.0,0.0,1.0,1.0},
+          pos_beta[4] = {10.0,10.0,-10.0,1.0};
+
+
     // crear los objetos de las prácticas: Mallas o Jerárquicos....
     cubo = new Cubo();
     tetraedro = new Tetraedro();
-    PLY = new ObjPLY("plys/beethoven.ply");
+    PLY = new ObjPLY("plys/ant.ply");
     Rev = new ObjRevolucion("plys/peon.ply");
     cilindro = new Cilindro("plys/cilindro.ply");
     esfera = new Esfera("plys/esfera.ply");
     cono = new Cono("plys/cono.ply");
     jerarquico = new ObjJerarquico();
     piramide = new Piramide();
+
+    alfa = new Luz(cdf_alfa, cef_alfa, caf_alfa, pos_alfa);
+    beta = new Luz(cdf_beta, cef_beta, caf_beta, pos_beta);
 
     num_objetos = 9; // se usa al pulsar la tecla 'O' (rotar objeto actual)
 }
@@ -59,7 +74,6 @@ void Escena::dibujar_objeto_actual()
     // (1) configurar OpenGL para el modo actual (puntos/lineas/sólido)
     //    llamar glPolygonMode, glColor... (y alguna cosas más), según dicho modo
     // .........completar (práctica 1)
-
     switch (mode)
     {
     case 0: //Muestra las lineas (modo lineas)
@@ -120,7 +134,7 @@ void Escena::dibujar_objeto_actual()
             jerarquico->draw(mode, cambia_modo);
         break;
     case 8:
-        if(piramide != nullptr)
+        if (piramide != nullptr)
             piramide->draw(mode, cambia_modo);
         break;
     default:
@@ -317,4 +331,50 @@ void Escena::conmutarAnimaciones()
         else
             glutIdleFunc(nullptr);
     }
+}
+
+
+//***************************************************************************
+// Constructor de un objeto Luz
+//***************************************************************************
+Luz::Luz(float cdf[], float cef[], float caf[], float posf[])
+{
+    for(int i = 0; i < 4; ++i)
+    {
+        color_ambiental[i] = caf[i];
+        color_difuso[i] = cdf[i];
+        color_especular[i] = cef[i];
+        pos[i] = posf[i];
+    }
+}
+
+
+//***************************************************************************
+// Funcion encargada de activar la iluminacion de la escena
+//***************************************************************************
+
+void Luz::activar()
+{
+    //Habilitamos iluminacion
+    glEnable(GL_LIGHTING);
+
+    //Habilitamos luz 0
+    glEnable(GL_LIGHT0);
+
+    //Configuracion del color de la fuente
+    glLightfv(GL_LIGHT0, GL_AMBIENT, color_ambiental);
+    glLightfv(GL_LIGHT0, GL_DIFFUSE, color_difuso);
+    glLightfv(GL_LIGHT0, GL_SPECULAR, color_especular);
+
+    //Configuracion de la posicion de la fuente
+    glLightfv(GL_LIGHT0, GL_POSITION, pos);
+}
+
+//***************************************************************************
+// Funcion encargada de deactivar la iluminacion de la escena
+//***************************************************************************
+
+void Luz::desactivar()
+{
+    glDisable(GL_LIGHTING);
 }

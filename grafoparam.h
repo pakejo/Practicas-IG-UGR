@@ -45,11 +45,11 @@ class GrafoParam
       //void examen();
 
       // objetos tipo malla indexada (nodos terminales)
-      Cubo *cubo = nullptr;
-      Cubo *panel = nullptr;
-      Cilindro *cilindro = nullptr;
-      Esfera *esfera = nullptr;
-      Cono *cono = nullptr;
+      Cubo      *cubo     = nullptr;
+      Cubo      *panel    = nullptr;
+      Cilindro  *cilindro = nullptr;
+      Esfera    *esfera   = nullptr;
+      Cono      *cono     = nullptr;
 
       // parámetros de la llamada actual (o última) a 'draw'
       int modo_vis;

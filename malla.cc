@@ -18,11 +18,11 @@ void ObjMallaIndexada::draw_ModoInmediato(int modo_vis)
   glEnableClientState(GL_VERTEX_ARRAY);
   glVertexPointer(3, GL_FLOAT, 0, vertices.data());
 
-  if(modo_vis == 3)
+  if (modo_vis == 3)
     this->draw_ModoAjedrez();
   else
     glDrawElements(GL_TRIANGLES, triangulos.size() * 3, GL_UNSIGNED_INT, triangulos.data());
-    
+
   glDisableClientState(GL_VERTEX_ARRAY);
 }
 
@@ -132,7 +132,36 @@ std::vector<Tupla3f> ObjMallaIndexada::getColores() { return colores; }
 
 void ObjMallaIndexada::calcular_normales()
 {
-  // completar .....(práctica 2)
+  std::vector<Tupla3f> normales_triangulos;
+  normales_vertices.clear();
+
+  normales_vertices.resize(vertices.size(), {0.0, 0.0, 0.0});
+
+
+  //Calculo de las normales de los triangulos
+  Tupla3f vector_A, vector_B, vector_Normal;
+  Tupla3f P0, P1, P2;
+
+  for (int i = 0; i < triangulos.size(); ++i)
+  {
+    P0 = vertices[triangulos[i](0)];
+    P1 = vertices[triangulos[i](1)];
+    P2 = vertices[triangulos[i](2)];
+
+    vector_A = P1 - P0;
+    vector_B = P2 - P0;
+    vector_Normal = vector_A.cross(vector_B);
+    
+    normales_triangulos.push_back(vector_Normal);
+
+    normales_vertices[triangulos[i](0)] =  normales_vertices[triangulos[i](0)] + vector_Normal;
+    normales_vertices[triangulos[i](1)] =  normales_vertices[triangulos[i](1)] + vector_Normal;
+    normales_vertices[triangulos[i](2)] =  normales_vertices[triangulos[i](2)] + vector_Normal;
+  }
+
+  //Normalizamos la normales calculadas
+  for (int i = 0; i < normales_vertices.size(); ++i)
+    normales_vertices[i] = normales_vertices[i].normalized();
 }
 
 // *****************************************************************************
@@ -162,7 +191,12 @@ Cubo::Cubo()
   triangulos = {
       {0, 2, 4}, {4, 2, 6}, {1, 5, 3}, {3, 5, 7}, {1, 3, 0}, {0, 3, 2}, {5, 4, 7}, {7, 4, 6}, {1, 0, 5}, {5, 0, 4}, {3, 7, 2}, {2, 7, 6}};
 
+  
+  material.emisividad = {1.0, 1.0, 1.0, 1.0};
+
   colorear();
+
+  calcular_normales();
 }
 
 // *****************************************************************************
@@ -185,8 +219,38 @@ Tetraedro::Tetraedro()
   triangulos = {{0, 1, 3}, {1, 2, 3}, {2, 0, 3}, {0, 2, 1}};
 
   colorear();
+
+  calcular_normales();
 }
 
+// *****************************************************************************
+//
+// Clase Piramide (examen)
+//
+// *****************************************************************************
+
+Piramide::Piramide()
+{
+  //Inicializar tabla de vertices
+  vertices = {
+      {+0.0, +0.0, +0.0},
+      {-5.0, +0.0, +0.0},
+      {-5.0, +0.0, -5.0},
+      {+5.0, +0.0, -5.0},
+      {+5.0, +0.0, +5.0},
+      {+0.0, +0.0, +5.0},
+      {+0.0, +5.0, +0.0},
+      {+0.0, +0.0, -5.0},
+      {+5.0, +0.0, +0.0},
+  };
+
+  //Inicializar tabla de triangulos
+  triangulos = {
+      {0, 6, 1}, {1, 6, 2}, {2, 6, 3}, {3, 6, 4}, {4, 6, 5}, {5, 6, 0}, {1, 2, 0}, {0, 2, 7}, {0, 7, 8}, {8, 7, 3}, {5, 0, 4}, {4, 0, 8}};
+
+  //Coloreamos la figura
+  colorear();
+}
 // *****************************************************************************
 //
 // Clase ObjPLY (práctica 2)
@@ -199,6 +263,8 @@ ObjPLY::ObjPLY(const std::string &nombre_archivo)
   ply::read(nombre_archivo, vertices, triangulos);
 
   colorear();
+
+  calcular_normales();
 }
 
 // *****************************************************************************
@@ -236,6 +302,8 @@ ObjRevolucion::ObjRevolucion(const std::string &nombre_ply_perfil)
   this->crearMalla(perfil_original, 50, vertices, triangulos);
 
   colorear();
+
+  calcular_normales();
 }
 
 void ObjRevolucion::crearMalla(const std::vector<Tupla3f> perfil_original, const int num_instancias_perfil,
@@ -325,56 +393,3 @@ Cilindro::Cilindro(const std::string &nombre_ply_perfil) : ObjRevolucion(nombre_
 // *****************************************************************************
 
 Esfera::Esfera(const std::string &nombre_ply_perfil) : ObjRevolucion(nombre_ply_perfil) {}
-
-
-
-
-
-Piramide::Piramide()
-{
-  //Inicializar tabla de vertices
-  vertices = {
-    {+0.0, +0.0, +0.0},
-    {-5.0, +0.0, +0.0},
-    {-5.0, +0.0, -5.0},
-    {+5.0, +0.0, -5.0},
-    {+5.0, +0.0, +5.0},
-    {+0.0, +0.0, +5.0},
-    {+0.0, +5.0, +0.0},
-    {+0.0, +0.0, -5.0},
-    {+5.0, +0.0, +0.0},
-  };
-
-  //Inicializar tabla de triangulos
-  triangulos = {
-    {0,6,1}, {1,6,2}, {2,6,3}, {3,6,4}, {4,6,5}, {5,6,0}, 
-    {1,2,0}, {0,2,7}, {0,7,8}, {8,7,3}, {5,0,4}, {4,0,8}
-  };
-
-  //Coloreamos la figura
-  colorear();
-}
-
-
-
-
-
-
-
-
-/*ObjRevolucion::ObjRevolucion(const float radio1, const float radio2)
-{
-  std::vector<Tupla3f> perfil_original;
-
-  for(float i=0.0; i<0.4; i++)
-    perfil_original.push_back({radio1, i, 0.0});
-
-  for(float i=0.4; i<0.8; i+=0.2)
-    perfil_original.push_back({radio2, i, 0.0});
-
-  this->crearMalla(perfil_original, 50, vertices, triangulos);
-
-  colorear();
-}
-
-Cuenco::Cuenco(const float radio1, const float radio2) : ObjRevolucion(radio1, radio2){}*/

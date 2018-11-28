@@ -12,6 +12,29 @@
 
 #include "aux.h"
 
+struct Material
+{
+  GLfloat emisividad[4],
+        reflectividad[4],
+        brillo;
+
+  void activar()
+  {
+    //Modificar emisividad
+    glMaterialf(GL_FRONT_AND_BACK, GL_EMISSION, emisividad);
+
+    //Modificar reflectividad difusa, especular y ambiental
+    glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, reflectividad);
+    glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, reflectividad);
+    glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, reflectividad);
+
+    //Modificar el exponente de brillo
+    glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, brillo);
+  }
+};
+
+
+
 // *****************************************************************************
 //
 // clase para objetos 3D (mallas indexadas)
@@ -28,12 +51,10 @@ public:
   void draw_ModoDiferido();
 
   // función que redibuja el objeto
-  // está función llama a 'draw_MI' (modo inmediato)
-  // o bien a 'draw_MD' (modo diferido, VBOs)
   void draw(int modo_vis, bool GPU_mode);
-  void draw_ModoAjedrez();
 
-  std::vector<Tupla3f> getColores();
+  //funcion que dibuja el modo ajedrez
+  void draw_ModoAjedrez();
 
 protected:
   void calcular_normales(); // calcula tabla de normales de vértices (práctica 3)
@@ -42,10 +63,13 @@ protected:
   std::vector<Tupla3f> vertices;   // tabla de coordenadas de vértices (una tupla por vértice, con tres floats)
   std::vector<Tupla3i> triangulos; // una terna de 3 enteros por cada cara o triángulo
 
-  GLuint id_vbo_ver, id_vbo_tri;
+  GLuint id_vbo_ver, id_vbo_tri;  // identificadores de vbo
 
   // completar: tabla de colores, tabla de normales de vértices
   std::vector<Tupla3f> colores;
+  std::vector<Tupla3f> normales_vertices; 
+
+  Material material;
 };
 
 // *****************************************************************************
@@ -67,7 +91,6 @@ public:
 // *****************************************************************************
 // Tetraedro con centro en el origen y lado unidad
 // (tiene 4 vertices y 4 caras)
-
 class Tetraedro : public ObjMallaIndexada
 {
 public:
@@ -119,12 +142,6 @@ class Esfera : public ObjRevolucion
 public:
   Esfera(const std::string &nombre_ply_perfil);
 };
-
-/*class Cuenco : public ObjRevolucion
-{
-  public:
-  Cuenco(const float radio1, const float radio2);
-};*/
 
 class Piramide : public ObjMallaIndexada
 {
