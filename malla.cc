@@ -16,7 +16,14 @@ void ObjMallaIndexada::draw_ModoInmediato(int modo_vis)
   // visualizar la malla usando glDrawElements,
   // completar (práctica 1)
   glEnableClientState(GL_VERTEX_ARRAY);
+  glEnableClientState(GL_NORMAL_ARRAY);
+
   glVertexPointer(3, GL_FLOAT, 0, vertices.data());
+  
+  if(glIsEnabled(GL_LIGHTING) == GL_TRUE)
+      glNormalPointer(GL_FLOAT, 0, normales_vertices.data());
+
+  //if(glIsEnabled(GL_COLOR_MATERIAL) == GL_TRUE)
 
   if (modo_vis == 3)
     this->draw_ModoAjedrez();
@@ -24,6 +31,7 @@ void ObjMallaIndexada::draw_ModoInmediato(int modo_vis)
     glDrawElements(GL_TRIANGLES, triangulos.size() * 3, GL_UNSIGNED_INT, triangulos.data());
 
   glDisableClientState(GL_VERTEX_ARRAY);
+  glDisableClientState(GL_NORMAL_ARRAY);
 }
 
 void ObjMallaIndexada::draw_ModoAjedrez()
@@ -125,14 +133,13 @@ void ObjMallaIndexada::colorear()
   }
 }
 
-std::vector<Tupla3f> ObjMallaIndexada::getColores() { return colores; }
+//std::vector<Tupla3f> ObjMallaIndexada::getColores() { return colores; }
 
 // -----------------------------------------------------------------------------
 // Recalcula la tabla de normales de vértices (el contenido anterior se pierde)
 
 void ObjMallaIndexada::calcular_normales()
 {
-  std::vector<Tupla3f> normales_triangulos;
   normales_vertices.clear();
 
   normales_vertices.resize(vertices.size(), {0.0, 0.0, 0.0});
@@ -151,8 +158,6 @@ void ObjMallaIndexada::calcular_normales()
     vector_A = P1 - P0;
     vector_B = P2 - P0;
     vector_Normal = vector_A.cross(vector_B);
-    
-    normales_triangulos.push_back(vector_Normal);
 
     normales_vertices[triangulos[i](0)] =  normales_vertices[triangulos[i](0)] + vector_Normal;
     normales_vertices[triangulos[i](1)] =  normales_vertices[triangulos[i](1)] + vector_Normal;
@@ -192,7 +197,11 @@ Cubo::Cubo()
       {0, 2, 4}, {4, 2, 6}, {1, 5, 3}, {3, 5, 7}, {1, 3, 0}, {0, 3, 2}, {5, 4, 7}, {7, 4, 6}, {1, 0, 5}, {5, 0, 4}, {3, 7, 2}, {2, 7, 6}};
 
   
-  material.emisividad = {1.0, 1.0, 1.0, 1.0};
+  material.emisividad = {0.5, 1.0, 0.3, 1.0};
+  material.reflectividad = {0.5, 1.0, 0.3, 1.0};
+  material.brillo = 10.0;
+
+  material.activar();
 
   colorear();
 
@@ -301,10 +310,17 @@ ObjRevolucion::ObjRevolucion(const std::string &nombre_ply_perfil)
 
   this->crearMalla(perfil_original, 50, vertices, triangulos);
 
+  material.emisividad = {0.5, 1.0, 0.3, 1.0};
+  material.reflectividad = {0.5, 1.0, 0.3, 1.0};
+  material.brillo = 10.0;
+
+  material.activar();
+
   colorear();
 
   calcular_normales();
 }
+
 
 void ObjRevolucion::crearMalla(const std::vector<Tupla3f> perfil_original, const int num_instancias_perfil,
                                std::vector<Tupla3f> &vertices, std::vector<Tupla3i> &triangulos)

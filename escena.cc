@@ -1,5 +1,3 @@
-
-
 #include "aux.h" // includes de OpenGL/glut/glew, windows, y librería std de C++
 #include "escena.h"
 #include "malla.h" // objetos: Cubo y otros....
@@ -22,12 +20,12 @@ Escena::Escena()
     float cdf_alfa[4] = {1.0,1.0,1.0,1.0}, 
           caf_alfa[4] = {1.0,1.0,1.0,1.0},
           cef_alfa[4] = {1.0,1.0,1.0,1.0},
-          pos_alfa[4] = {10.0,10.0,-10.0,0.0};
+          pos_alfa[4] = {-8.0,-8.0,8.0,0.0};
 
     float cdf_beta[4] = {1.0,0.0,1.0,1.0}, 
           caf_beta[4] = {1.0,1.0,1.0,1.0},
           cef_beta[4] = {1.0,0.0,1.0,1.0},
-          pos_beta[4] = {10.0,10.0,-10.0,1.0};
+          pos_beta[4] = {-8.0,-8.0,8.0,1.0};
 
 
     // crear los objetos de las prácticas: Mallas o Jerárquicos....
@@ -82,10 +80,16 @@ void Escena::dibujar_objeto_actual()
 
     case 1: //Muestra el relleno (modo relleno)
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-        glEnableClientState(GL_COLOR_ARRAY);
+        //glEnableClientState(GL_COLOR_ARRAY);
+        glEnable(GL_NORMALIZE);
+        glShadeModel(GL_SMOOTH);
+        alfa->activar();
+        beta->activar();
         break;
 
     case 2: //Muestra los puntos (modo puntos)
+        alfa->desactivar();
+        beta->desactivar();
         glDisableClientState(GL_COLOR_ARRAY);
         glPointSize(5);
         glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
@@ -368,6 +372,7 @@ void Luz::activar()
 
     //Configuracion de la posicion de la fuente
     glLightfv(GL_LIGHT0, GL_POSITION, pos);
+
 }
 
 //***************************************************************************

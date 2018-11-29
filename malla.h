@@ -14,22 +14,23 @@
 
 struct Material
 {
-  GLfloat emisividad[4],
-        reflectividad[4],
-        brillo;
+  std::vector<GLfloat> emisividad, reflectividad;
+  GLfloat brillo;
 
   void activar()
   {
+    //glEnable(GL_COLOR_MATERIAL);
+
     //Modificar emisividad
-    glMaterialf(GL_FRONT_AND_BACK, GL_EMISSION, emisividad);
+    glMaterialfv(GL_FRONT ,GL_EMISSION, emisividad.data());
 
     //Modificar reflectividad difusa, especular y ambiental
-    glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, reflectividad);
-    glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, reflectividad);
-    glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, reflectividad);
+    glMaterialfv(GL_FRONT, GL_AMBIENT, reflectividad.data());
+    glMaterialfv(GL_FRONT, GL_DIFFUSE, reflectividad.data());
+    glMaterialfv(GL_FRONT, GL_SPECULAR, reflectividad.data());
 
     //Modificar el exponente de brillo
-    glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, brillo);
+    glMaterialf(GL_FRONT, GL_SHININESS, brillo);
   }
 };
 
