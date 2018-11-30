@@ -14,27 +14,14 @@
 
 struct Material
 {
-  std::vector<GLfloat> emisividad, reflectividad;
-  GLfloat brillo;
+  std::vector<GLfloat> material_difuso = {0.714, 0.4284, 0.18144}, 
+                       material_especular = {0.393548, 0.271906, 0.166721}, 
+                       material_ambiental = {0.2125, 0.1275, 0.054};
 
-  void activar()
-  {
-    //glEnable(GL_COLOR_MATERIAL);
+  GLfloat brillo = 0.2;
 
-    //Modificar emisividad
-    glMaterialfv(GL_FRONT ,GL_EMISSION, emisividad.data());
-
-    //Modificar reflectividad difusa, especular y ambiental
-    glMaterialfv(GL_FRONT, GL_AMBIENT, reflectividad.data());
-    glMaterialfv(GL_FRONT, GL_DIFFUSE, reflectividad.data());
-    glMaterialfv(GL_FRONT, GL_SPECULAR, reflectividad.data());
-
-    //Modificar el exponente de brillo
-    glMaterialf(GL_FRONT, GL_SHININESS, brillo);
-  }
+  void activar();
 };
-
-
 
 // *****************************************************************************
 //
@@ -59,16 +46,16 @@ public:
 
 protected:
   void calcular_normales(); // calcula tabla de normales de vértices (práctica 3)
-  void colorear();    //Funcion que va llenando el vector de colorees en funcion del objeto y sus vertices
+  void colorear();          //Funcion que va llenando el vector de colorees en funcion del objeto y sus vertices
 
   std::vector<Tupla3f> vertices;   // tabla de coordenadas de vértices (una tupla por vértice, con tres floats)
   std::vector<Tupla3i> triangulos; // una terna de 3 enteros por cada cara o triángulo
 
-  GLuint id_vbo_ver, id_vbo_tri;  // identificadores de vbo
+  GLuint id_vbo_ver, id_vbo_tri; // identificadores de vbo
 
   // completar: tabla de colores, tabla de normales de vértices
   std::vector<Tupla3f> colores;
-  std::vector<Tupla3f> normales_vertices; 
+  std::vector<Tupla3f> normales_vertices;
 
   Material material;
 };
@@ -117,7 +104,7 @@ public:
   ObjRevolucion(const std::string &nombre_ply_perfil);
 
 protected:
-  void crearMalla(const std::vector<Tupla3f> perfil_original, const int num_instancias_perfil,std::vector<Tupla3f>&vertices, std::vector<Tupla3i>&triangulos);
+  void crearMalla(const std::vector<Tupla3f> perfil_original, const int num_instancias_perfil, std::vector<Tupla3f> &vertices, std::vector<Tupla3i> &triangulos);
 };
 
 // *****************************************************************************
@@ -146,8 +133,8 @@ public:
 
 class Piramide : public ObjMallaIndexada
 {
-  public:
-    Piramide();
+public:
+  Piramide();
 };
 
 #endif

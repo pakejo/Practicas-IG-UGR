@@ -5,32 +5,37 @@
 #include "malla.h"
 #include "jerarquico.h"
 
+struct Foco
+{
+  //Colores de la luz
+  float
+      color_difuso[4],
+      color_especular[4],
+      color_ambiental[4];
+
+  //Posicion de la luz
+  float pos[4];
+};
 
 class Luz
 {
-  private:
+private:
+  std::vector<Foco> datos_luces;
 
-    //Colores de la luz
-    float 
-    color_difuso[4],
-    color_especular[4],
-    color_ambiental[4];
+  //Variables para saber la luz a usar
+  std::vector<GLenum> luces = {GL_LIGHT0, GL_LIGHT1, GL_LIGHT2, GL_LIGHT3, GL_LIGHT4, GL_LIGHT5, GL_LIGHT6, GL_LIGHT7};
 
-    //Posicion de la luz
-    float pos[4];
+public:
+  Luz(float cdf[], float cef[], float caf[], float posf[]);
 
-  public:
+  //Activacion de la iluminacion
+  void activar();
 
-    Luz(float cdf[], float cef[], float caf[], float posf[]);
+  //Desactivacion de la iluminacion
+  void desactivar();
 
-    //Activacion de la iluminacion
-    void activar();
-
-    //Desactivacion de la iluminacion
-    void desactivar();
-    
+  void nueva_luz(float cdf[], float cef[], float caf[], float posf[]);
 };
-
 
 class Escena
 {
@@ -74,8 +79,7 @@ private:
   ObjJerarquico *jerarquico = nullptr;
   Piramide *piramide = nullptr;
 
-  Luz *alfa = nullptr;
-  Luz *beta = nullptr;
+  Luz *foco = nullptr;
 
 public:
   Escena();

@@ -23,8 +23,6 @@ void ObjMallaIndexada::draw_ModoInmediato(int modo_vis)
   if(glIsEnabled(GL_LIGHTING) == GL_TRUE)
       glNormalPointer(GL_FLOAT, 0, normales_vertices.data());
 
-  //if(glIsEnabled(GL_COLOR_MATERIAL) == GL_TRUE)
-
   if (modo_vis == 3)
     this->draw_ModoAjedrez();
   else
@@ -196,11 +194,6 @@ Cubo::Cubo()
   triangulos = {
       {0, 2, 4}, {4, 2, 6}, {1, 5, 3}, {3, 5, 7}, {1, 3, 0}, {0, 3, 2}, {5, 4, 7}, {7, 4, 6}, {1, 0, 5}, {5, 0, 4}, {3, 7, 2}, {2, 7, 6}};
 
-  
-  material.emisividad = {0.5, 1.0, 0.3, 1.0};
-  material.reflectividad = {0.5, 1.0, 0.3, 1.0};
-  material.brillo = 10.0;
-
   material.activar();
 
   colorear();
@@ -230,6 +223,7 @@ Tetraedro::Tetraedro()
   colorear();
 
   calcular_normales();
+
 }
 
 // *****************************************************************************
@@ -309,12 +303,6 @@ ObjRevolucion::ObjRevolucion(const std::string &nombre_ply_perfil)
   ply::read_vertices(nombre_ply_perfil, perfil_original);
 
   this->crearMalla(perfil_original, 50, vertices, triangulos);
-
-  material.emisividad = {0.5, 1.0, 0.3, 1.0};
-  material.reflectividad = {0.5, 1.0, 0.3, 1.0};
-  material.brillo = 10.0;
-
-  material.activar();
 
   colorear();
 
@@ -409,3 +397,16 @@ Cilindro::Cilindro(const std::string &nombre_ply_perfil) : ObjRevolucion(nombre_
 // *****************************************************************************
 
 Esfera::Esfera(const std::string &nombre_ply_perfil) : ObjRevolucion(nombre_ply_perfil) {}
+
+
+  void Material::activar()
+  {
+    //Modificar reflectividad difusa, especular y ambiental
+    glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, material_ambiental.data());
+    glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, material_difuso.data());
+    glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, material_especular.data());
+
+    //Modificar el exponente de brillo
+    glMaterialf(GL_FRONT, GL_SHININESS, brillo*128.0);
+
+  }

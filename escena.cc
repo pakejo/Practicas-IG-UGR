@@ -17,21 +17,20 @@ Escena::Escena()
     ejes.changeAxisSize(5000);
 
     //Datos de la iluminacion
-    float cdf_alfa[4] = {1.0,1.0,1.0,1.0}, 
-          caf_alfa[4] = {1.0,1.0,1.0,1.0},
-          cef_alfa[4] = {1.0,1.0,1.0,1.0},
-          pos_alfa[4] = {-8.0,-8.0,8.0,0.0};
+    float cdf_alfa[4] = {1.0, 1.0, 1.0, 1.0},
+          caf_alfa[4] = {1.0, 1.0, 1.0, 1.0},
+          cef_alfa[4] = {1.0, 1.0, 1.0, 1.0},
+          pos_alfa[4] = {10.0, 10.0, 10.0, 0.0};
 
-    float cdf_beta[4] = {1.0,0.0,1.0,1.0}, 
-          caf_beta[4] = {1.0,1.0,1.0,1.0},
-          cef_beta[4] = {1.0,0.0,1.0,1.0},
-          pos_beta[4] = {-8.0,-8.0,8.0,1.0};
-
+    float cdf_beta[4] = {1.0, 0.0, 1.0, 1.0},
+          caf_beta[4] = {0.0, 0.0, 0.0, 1.0},
+          cef_beta[4] = {1.0, 0.0, 1.0, 1.0},
+          pos_beta[4] = {10.0, 10.0, 10.0, 1.0};
 
     // crear los objetos de las prácticas: Mallas o Jerárquicos....
     cubo = new Cubo();
     tetraedro = new Tetraedro();
-    PLY = new ObjPLY("plys/ant.ply");
+    PLY = new ObjPLY("plys/big_dodge.ply");
     Rev = new ObjRevolucion("plys/peon.ply");
     cilindro = new Cilindro("plys/cilindro.ply");
     esfera = new Esfera("plys/esfera.ply");
@@ -39,8 +38,8 @@ Escena::Escena()
     jerarquico = new ObjJerarquico();
     piramide = new Piramide();
 
-    alfa = new Luz(cdf_alfa, cef_alfa, caf_alfa, pos_alfa);
-    beta = new Luz(cdf_beta, cef_beta, caf_beta, pos_beta);
+    foco = new Luz(cdf_alfa, cef_alfa, caf_alfa, pos_alfa);
+    foco->nueva_luz(cdf_beta,cef_beta,caf_beta,pos_beta);
 
     num_objetos = 9; // se usa al pulsar la tecla 'O' (rotar objeto actual)
 }
@@ -82,14 +81,12 @@ void Escena::dibujar_objeto_actual()
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         //glEnableClientState(GL_COLOR_ARRAY);
         glEnable(GL_NORMALIZE);
-        glShadeModel(GL_SMOOTH);
-        alfa->activar();
-        beta->activar();
+        glShadeModel(GL_FLAT);
+        foco->activar();
         break;
 
     case 2: //Muestra los puntos (modo puntos)
-        alfa->desactivar();
-        beta->desactivar();
+        foco->desactivar();
         glDisableClientState(GL_COLOR_ARRAY);
         glPointSize(5);
         glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
@@ -337,21 +334,23 @@ void Escena::conmutarAnimaciones()
     }
 }
 
-
 //***************************************************************************
 // Constructor de un objeto Luz
 //***************************************************************************
 Luz::Luz(float cdf[], float cef[], float caf[], float posf[])
 {
-    for(int i = 0; i < 4; ++i)
-    {
-        color_ambiental[i] = caf[i];
-        color_difuso[i] = cdf[i];
-        color_especular[i] = cef[i];
-        pos[i] = posf[i];
-    }
-}
+    Foco miFoco;
 
+    for (int i = 0; i < 4; ++i)
+    {
+        miFoco.color_ambiental[i] = caf[i];
+        miFoco.color_difuso[i] = cdf[i];
+        miFoco.color_especular[i] = cef[i];
+        miFoco.pos[i] = posf[i];
+    }
+
+    datos_luces.push_back(miFoco);
+}
 
 //***************************************************************************
 // Funcion encargada de activar la iluminacion de la escena
@@ -362,17 +361,22 @@ void Luz::activar()
     //Habilitamos iluminacion
     glEnable(GL_LIGHTING);
 
-    //Habilitamos luz 0
-    glEnable(GL_LIGHT0);
+    for (int i = 0; i < datos_luces.size(); ++i)
+    {
+        if (glIsEnabled(luces[i]) == GL_FALSE)
+        {
+            //Habilitamos luz 0
+            glEnable(luces[i]);
 
-    //Configuracion del color de la fuente
-    glLightfv(GL_LIGHT0, GL_AMBIENT, color_ambiental);
-    glLightfv(GL_LIGHT0, GL_DIFFUSE, color_difuso);
-    glLightfv(GL_LIGHT0, GL_SPECULAR, color_especular);
+            //Configuracion del color de la fuente
+            glLightfv(luces[i], GL_AMBIENT, datos_luces[i].color_ambiental);
+            glLightfv(luces[i], GL_DIFFUSE, datos_luces[i].color_difuso);
+            glLightfv(luces[i], GL_SPECULAR, datos_luces[i].color_especular);
 
-    //Configuracion de la posicion de la fuente
-    glLightfv(GL_LIGHT0, GL_POSITION, pos);
-
+            //Configuracion de la posicion de la fuente
+            glLightfv(luces[i], GL_POSITION, datos_luces[i].pos);
+        }
+    }
 }
 
 //***************************************************************************
@@ -382,4 +386,23 @@ void Luz::activar()
 void Luz::desactivar()
 {
     glDisable(GL_LIGHTING);
+}
+
+//***************************************************************************
+// Funcion encargada de añadir una nueva luz
+//***************************************************************************
+void Luz::nueva_luz(float cdf[], float cef[], float caf[], float posf[])
+{
+    Foco nuevo;
+
+    for (int i = 0; i < 4; ++i)
+    {
+        nuevo.color_ambiental[i] = caf[i];
+        nuevo.color_difuso[i] = cdf[i];
+        nuevo.color_especular[i] = cef[i];
+        nuevo.pos[i] = posf[i];
+    }
+
+    datos_luces.push_back(nuevo);
+
 }
