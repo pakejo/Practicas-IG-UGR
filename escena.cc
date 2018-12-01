@@ -20,13 +20,13 @@ Escena::Escena()
     float cdf_alfa[4] = {1.0, 1.0, 1.0, 1.0},
           caf_alfa[4] = {1.0, 1.0, 1.0, 1.0},
           cef_alfa[4] = {1.0, 1.0, 1.0, 1.0},
-          pos_alfa[4] = {30.0, 0.0, 30.0, 0.0};
+          pos_alfa[4] = {30.0, 30.0, 30.0, 0.0};
 
     //Magenta
     float cdf_beta[4] = {1.0, 0.0, 1.0, 1.0},
           caf_beta[4] = {0.0, 0.0, 0.0, 1.0},
           cef_beta[4] = {1.0, 0.0, 1.0, 1.0},
-          pos_beta[4] = {30.0, 0.0, 30.0, 1.0};
+          pos_beta[4] = {30.0, 30.0, 30.0, 1.0};
 
     // crear los objetos de las prácticas: Mallas o Jerárquicos....
     cubo = new Cubo();
@@ -65,7 +65,7 @@ void Escena::inicializar(int UI_window_width, int UI_window_height)
 // (llamada desde Escena::dibujar)
 // ***************************************************************************
 
-void Escena::dibujar_objeto_actual()
+void Escena::dibujar_objeto_actual(bool shade_model)
 {
     using namespace std;
 
@@ -82,7 +82,12 @@ void Escena::dibujar_objeto_actual()
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         glEnableClientState(GL_COLOR_ARRAY);
         glEnable(GL_NORMALIZE);
-        glShadeModel(GL_SMOOTH);
+
+        if(shade_model)
+            glShadeModel(GL_SMOOTH);
+        else
+            glShadeModel(GL_FLAT);
+
         foco->activar();
         break;
 
@@ -105,39 +110,65 @@ void Escena::dibujar_objeto_actual()
     {
     case 0:
         if (cubo != nullptr)
+        {
             cubo->draw(mode, cambia_modo);
+            cubo->activar_Material();
+        }
         break;
     case 1:
         if (tetraedro != nullptr)
+        {
             tetraedro->draw(mode, cambia_modo);
+            tetraedro->activar_Material();
+        }
         break;
     case 2:
         if (PLY != nullptr)
+        {
             PLY->draw(mode, cambia_modo);
+            PLY->activar_Material();
+        }
         break;
     case 3:
         if (Rev != nullptr)
+        {
             Rev->draw(mode, cambia_modo);
+            Rev->activar_Material();
+        }
         break;
     case 4:
         if (cilindro != nullptr)
+        {
             cilindro->draw(mode, cambia_modo);
+            cilindro->activar_Material();
+        }
         break;
     case 5:
         if (esfera != nullptr)
+        {
             esfera->draw(mode, cambia_modo);
+            esfera->activar_Material();
+        }
         break;
     case 6:
         if (cono != nullptr)
+        {
             cono->draw(mode, cambia_modo);
+            cono->activar_Material();
+        }
         break;
     case 7:
         if (jerarquico != nullptr)
+        {
             jerarquico->draw(mode, cambia_modo);
+        }
         break;
     case 8:
         if (piramide != nullptr)
+        {
             piramide->draw(mode, cambia_modo);
+            piramide->activar_Material();
+        }
         break;
     default:
         cout << "draw_object: el número de objeto actual (" << objeto_actual << ") es incorrecto." << endl;
@@ -158,7 +189,7 @@ void Escena::dibujar()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Limpiar la pantalla
     change_observer();
     ejes.draw();
-    dibujar_objeto_actual();
+    dibujar_objeto_actual(shade_model);
 }
 
 //**************************************************************************
@@ -233,10 +264,12 @@ bool Escena::teclaPulsada(unsigned char tecla, int x, int y)
         if (jerarquico != nullptr && objeto_actual == 7)
             jerarquico->decelerar();
         break;
-
     case 'I':
         luz = !luz;
         this->conmutarAnimaciones();
+        break;
+    case 'S':
+        shade_model = !shade_model;
         break;
     }
     return false;
@@ -321,7 +354,8 @@ void Escena::mgeDesocupado()
     if (glIsEnabled(GL_LIGHTING) == GL_TRUE)
         foco->incrementa_angulo();
 
-    jerarquico->actualizarEstado();
+    if(objeto_actual == 7)
+        jerarquico->actualizarEstado();
     glutPostRedisplay();
 }
 
@@ -390,11 +424,11 @@ void Luz::activar() //Cambiar
         {
             glMatrixMode(GL_MODELVIEW);
             glPushMatrix();
-            glLoadIdentity();
-            glMultMatrixd(translate);
-            glRotatef(angulo_rotacion, 0.0, 1.0, 0.0);
-            glLightfv(luces[i], GL_POSITION, datos_luces[i].pos);
-            cout << "Angulo rotado: " << angulo_rotacion << endl;
+                glLoadIdentity();
+                glMultMatrixd(translate);
+                glRotatef(angulo_rotacion, 0.0, 1.0, 0.0);
+                glLightfv(luces[i], GL_POSITION, datos_luces[i].pos);
+                cout << "Angulo rotado: " << angulo_rotacion << endl;
             glPopMatrix();
         }
         else
@@ -431,10 +465,9 @@ void Luz::nueva_luz(float cdf[], float cef[], float caf[], float posf[])
 }
 
 //***************************************************************************
-// Funcion encargada de añadir una nueva luz
+// Funcion encargada de incrementar el angulo de rotacion de la luz 
 //***************************************************************************
 void Luz::incrementa_angulo()
 {
     angulo_rotacion += 0.5;
-    //std::cout <<"ag: " <<angulo_rotacion <<std::endl;
 }

@@ -19,9 +19,9 @@ void ObjMallaIndexada::draw_ModoInmediato(int modo_vis)
   glEnableClientState(GL_NORMAL_ARRAY);
 
   glVertexPointer(3, GL_FLOAT, 0, vertices.data());
-  
-  if(glIsEnabled(GL_LIGHTING) == GL_TRUE)
-      glNormalPointer(GL_FLOAT, 0, normales_vertices.data());
+
+  if (glIsEnabled(GL_LIGHTING) == GL_TRUE)
+    glNormalPointer(GL_FLOAT, 0, normales_vertices.data());
 
   if (modo_vis == 3)
     this->draw_ModoAjedrez();
@@ -142,7 +142,6 @@ void ObjMallaIndexada::calcular_normales()
 
   normales_vertices.resize(vertices.size(), {0.0, 0.0, 0.0});
 
-
   //Calculo de las normales de los triangulos
   Tupla3f vector_A, vector_B, vector_Normal;
   Tupla3f P0, P1, P2;
@@ -157,9 +156,9 @@ void ObjMallaIndexada::calcular_normales()
     vector_B = P2 - P0;
     vector_Normal = vector_A.cross(vector_B);
 
-    normales_vertices[triangulos[i](0)] =  normales_vertices[triangulos[i](0)] + vector_Normal;
-    normales_vertices[triangulos[i](1)] =  normales_vertices[triangulos[i](1)] + vector_Normal;
-    normales_vertices[triangulos[i](2)] =  normales_vertices[triangulos[i](2)] + vector_Normal;
+    normales_vertices[triangulos[i](0)] = normales_vertices[triangulos[i](0)] + vector_Normal;
+    normales_vertices[triangulos[i](1)] = normales_vertices[triangulos[i](1)] + vector_Normal;
+    normales_vertices[triangulos[i](2)] = normales_vertices[triangulos[i](2)] + vector_Normal;
   }
 
   //Normalizamos la normales calculadas
@@ -225,7 +224,6 @@ Tetraedro::Tetraedro()
   calcular_normales();
 
   material.activar();
-
 }
 
 // *****************************************************************************
@@ -319,7 +317,6 @@ ObjRevolucion::ObjRevolucion(const std::string &nombre_ply_perfil)
   material.activar();
 }
 
-
 void ObjRevolucion::crearMalla(const std::vector<Tupla3f> perfil_original, const int num_instancias_perfil,
                                std::vector<Tupla3f> &vertices, std::vector<Tupla3i> &triangulos)
 {
@@ -408,15 +405,18 @@ Cilindro::Cilindro(const std::string &nombre_ply_perfil) : ObjRevolucion(nombre_
 
 Esfera::Esfera(const std::string &nombre_ply_perfil) : ObjRevolucion(nombre_ply_perfil) {}
 
+void Material::activar()
+{
+  //Modificar reflectividad difusa, especular y ambiental
+  glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, material_ambiental.data());
+  glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, material_difuso.data());
+  glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, material_especular.data());
 
-  void Material::activar()
-  {
-    //Modificar reflectividad difusa, especular y ambiental
-    glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, material_ambiental.data());
-    glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, material_difuso.data());
-    glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, material_especular.data());
+  //Modificar el exponente de brillo
+  glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, brillo * 128.0);
+}
 
-    //Modificar el exponente de brillo
-    glMaterialf(GL_FRONT, GL_SHININESS, brillo*128.0);
-
-  }
+void ObjMallaIndexada::activar_Material()
+{
+  material.activar();
+}

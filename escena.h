@@ -20,13 +20,16 @@ struct Foco
 class Luz
 {
 private:
+  //Vector con los datos de las luces activas
   std::vector<Foco> datos_luces;
 
   //Variables para saber la luz a usar
   std::vector<GLenum> luces = {GL_LIGHT0, GL_LIGHT1, GL_LIGHT2, GL_LIGHT3, GL_LIGHT4, GL_LIGHT5, GL_LIGHT6, GL_LIGHT7};
 
+  //Angulo de rotacion de la luz
   float angulo_rotacion = 0.0;
 
+  //Matriz identidad
   GLdouble translate[16] = {1,0,0,0,0,1,0,0,0,0,1,0,1,0,0,1};
 
 public:
@@ -41,7 +44,7 @@ public:
   //Añadir un nuevo foco
   void nueva_luz(float cdf[], float cef[], float caf[], float posf[]);
 
-  //Animacion del foco
+  //Incremento del angulo de rotacion
   void incrementa_angulo();
 };
 
@@ -60,7 +63,7 @@ private:
   GLfloat Width, Height, Front_plane, Back_plane;
 
   void clear_window();
-  void dibujar_objeto_actual();
+  void dibujar_objeto_actual(bool shade_model);
 
   // Transformación de cámara
   void change_projection(const float ratio_xy);
@@ -73,6 +76,7 @@ private:
       mode = 0;          // cambia el modo de visualizacion
 
   bool cambia_modo = false; //Indica modo GPU
+  bool shade_model = true;
 
   bool activarAnimaciones;
   bool luz;

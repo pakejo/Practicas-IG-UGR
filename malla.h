@@ -14,11 +14,11 @@
 
 struct Material
 {
-  std::vector<GLfloat> material_difuso = {0.5, 0.5, 0.5}, 
-                       material_especular = {0.5, 0.5, 0.5}, 
-                       material_ambiental = {0.5, 0.5, 0.5};
+  std::vector<GLfloat> material_difuso = {0.75164, 0.60648, 0.22648, 1.0}, 
+                       material_especular = {0.628281, 0.555802, 0.366065, 1.0}, 
+                       material_ambiental = {0.24725, 0.1995, 0.0745, 1.0};
 
-  GLfloat brillo = 0.2;
+  GLfloat brillo = 0.4;
 
   void activar();
 };
@@ -43,6 +43,8 @@ public:
 
   //funcion que dibuja el modo ajedrez
   void draw_ModoAjedrez();
+
+  void activar_Material();
 
 protected:
   void calcular_normales(); // calcula tabla de normales de vértices (práctica 3)
