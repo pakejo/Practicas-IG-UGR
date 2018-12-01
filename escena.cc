@@ -20,12 +20,13 @@ Escena::Escena()
     float cdf_alfa[4] = {1.0, 1.0, 1.0, 1.0},
           caf_alfa[4] = {1.0, 1.0, 1.0, 1.0},
           cef_alfa[4] = {1.0, 1.0, 1.0, 1.0},
-          pos_alfa[4] = {10.0, 10.0, 10.0, 0.0};
+          pos_alfa[4] = {30.0, 0.0, 30.0, 0.0};
 
+    //Magenta
     float cdf_beta[4] = {1.0, 0.0, 1.0, 1.0},
           caf_beta[4] = {0.0, 0.0, 0.0, 1.0},
           cef_beta[4] = {1.0, 0.0, 1.0, 1.0},
-          pos_beta[4] = {10.0, 10.0, 10.0, 1.0};
+          pos_beta[4] = {30.0, 0.0, 30.0, 1.0};
 
     // crear los objetos de las prácticas: Mallas o Jerárquicos....
     cubo = new Cubo();
@@ -39,7 +40,7 @@ Escena::Escena()
     piramide = new Piramide();
 
     foco = new Luz(cdf_alfa, cef_alfa, caf_alfa, pos_alfa);
-    foco->nueva_luz(cdf_beta,cef_beta,caf_beta,pos_beta);
+    foco->nueva_luz(cdf_beta, cef_beta, caf_beta, pos_beta);
 
     num_objetos = 9; // se usa al pulsar la tecla 'O' (rotar objeto actual)
 }
@@ -79,9 +80,9 @@ void Escena::dibujar_objeto_actual()
 
     case 1: //Muestra el relleno (modo relleno)
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-        //glEnableClientState(GL_COLOR_ARRAY);
+        glEnableClientState(GL_COLOR_ARRAY);
         glEnable(GL_NORMALIZE);
-        glShadeModel(GL_FLAT);
+        glShadeModel(GL_SMOOTH);
         foco->activar();
         break;
 
@@ -212,7 +213,10 @@ bool Escena::teclaPulsada(unsigned char tecla, int x, int y)
     case 'A':
         // activar/desactivar las animaciones
         if (jerarquico != nullptr && objeto_actual == 7)
+        {
+            activarAnimaciones = !activarAnimaciones;
             this->conmutarAnimaciones();
+        }
         break;
     case 'Z':
         // incrementa el valor del parametro actual del objeto jerarquico
@@ -228,6 +232,11 @@ bool Escena::teclaPulsada(unsigned char tecla, int x, int y)
         // decrementa el valor de incremento/decremento usado para las animaciones
         if (jerarquico != nullptr && objeto_actual == 7)
             jerarquico->decelerar();
+        break;
+
+    case 'I':
+        luz = !luz;
+        this->conmutarAnimaciones();
         break;
     }
     return false;
@@ -309,6 +318,9 @@ void Escena::change_observer()
 
 void Escena::mgeDesocupado()
 {
+    if (glIsEnabled(GL_LIGHTING) == GL_TRUE)
+        foco->incrementa_angulo();
+
     jerarquico->actualizarEstado();
     glutPostRedisplay();
 }
@@ -320,18 +332,17 @@ void Escena::mgeDesocupado()
 
 void Escena::conmutarAnimaciones()
 {
-    if (objeto_actual == 7)
+    if (activarAnimaciones)
     {
-        activarAnimaciones = !activarAnimaciones;
-
-        if (activarAnimaciones == true)
-        {
-            jerarquico->inicioAnimaciones();
-            glutIdleFunc(funcion_desocupado);
-        }
-        else
-            glutIdleFunc(nullptr);
+        jerarquico->inicioAnimaciones();
+        glutIdleFunc(funcion_desocupado);
     }
+    else if (luz)
+    {
+        glutIdleFunc(funcion_desocupado);
+    }
+    else
+        glutIdleFunc(nullptr);
 }
 
 //***************************************************************************
@@ -356,26 +367,39 @@ Luz::Luz(float cdf[], float cef[], float caf[], float posf[])
 // Funcion encargada de activar la iluminacion de la escena
 //***************************************************************************
 
-void Luz::activar()
+void Luz::activar() //Cambiar
 {
+    using namespace std;
+
     //Habilitamos iluminacion
     glEnable(GL_LIGHTING);
 
     for (int i = 0; i < datos_luces.size(); ++i)
     {
-        if (glIsEnabled(luces[i]) == GL_FALSE)
+        //Habilitamos luz 0
+        glEnable(luces[i]);
+
+        //Configuracion del color de la fuente
+        glLightfv(luces[i], GL_AMBIENT, datos_luces[i].color_ambiental);
+        glLightfv(luces[i], GL_DIFFUSE, datos_luces[i].color_difuso);
+        glLightfv(luces[i], GL_SPECULAR, datos_luces[i].color_especular);
+
+        //Configuracion de la posicion de la fuente
+
+        if (i == 1)
         {
-            //Habilitamos luz 0
-            glEnable(luces[i]);
-
-            //Configuracion del color de la fuente
-            glLightfv(luces[i], GL_AMBIENT, datos_luces[i].color_ambiental);
-            glLightfv(luces[i], GL_DIFFUSE, datos_luces[i].color_difuso);
-            glLightfv(luces[i], GL_SPECULAR, datos_luces[i].color_especular);
-
-            //Configuracion de la posicion de la fuente
+            glMatrixMode(GL_MODELVIEW);
+            glPushMatrix();
+            glLoadIdentity();
+            glMultMatrixd(translate);
+            glRotatef(angulo_rotacion, 0.0, 1.0, 0.0);
             glLightfv(luces[i], GL_POSITION, datos_luces[i].pos);
+            cout << "Angulo rotado: " << angulo_rotacion << endl;
+            glPopMatrix();
         }
+        else
+            glLightfv(luces[i], GL_POSITION, datos_luces[i].pos);
+
     }
 }
 
@@ -404,5 +428,13 @@ void Luz::nueva_luz(float cdf[], float cef[], float caf[], float posf[])
     }
 
     datos_luces.push_back(nuevo);
+}
 
+//***************************************************************************
+// Funcion encargada de añadir una nueva luz
+//***************************************************************************
+void Luz::incrementa_angulo()
+{
+    angulo_rotacion += 0.5;
+    //std::cout <<"ag: " <<angulo_rotacion <<std::endl;
 }

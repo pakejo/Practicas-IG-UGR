@@ -14,9 +14,9 @@
 
 struct Material
 {
-  std::vector<GLfloat> material_difuso = {0.714, 0.4284, 0.18144}, 
-                       material_especular = {0.393548, 0.271906, 0.166721}, 
-                       material_ambiental = {0.2125, 0.1275, 0.054};
+  std::vector<GLfloat> material_difuso = {0.5, 0.5, 0.5}, 
+                       material_especular = {0.5, 0.5, 0.5}, 
+                       material_ambiental = {0.5, 0.5, 0.5};
 
   GLfloat brillo = 0.2;
 

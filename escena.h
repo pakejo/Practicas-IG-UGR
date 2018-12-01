@@ -25,6 +25,10 @@ private:
   //Variables para saber la luz a usar
   std::vector<GLenum> luces = {GL_LIGHT0, GL_LIGHT1, GL_LIGHT2, GL_LIGHT3, GL_LIGHT4, GL_LIGHT5, GL_LIGHT6, GL_LIGHT7};
 
+  float angulo_rotacion = 0.0;
+
+  GLdouble translate[16] = {1,0,0,0,0,1,0,0,0,0,1,0,1,0,0,1};
+
 public:
   Luz(float cdf[], float cef[], float caf[], float posf[]);
 
@@ -34,7 +38,11 @@ public:
   //Desactivacion de la iluminacion
   void desactivar();
 
+  //Añadir un nuevo foco
   void nueva_luz(float cdf[], float cef[], float caf[], float posf[]);
+
+  //Animacion del foco
+  void incrementa_angulo();
 };
 
 class Escena
@@ -67,6 +75,7 @@ private:
   bool cambia_modo = false; //Indica modo GPU
 
   bool activarAnimaciones;
+  bool luz;
 
   // Objetos de la escena
   Cubo *cubo = nullptr;

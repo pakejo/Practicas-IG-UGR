@@ -224,6 +224,8 @@ Tetraedro::Tetraedro()
 
   calcular_normales();
 
+  material.activar();
+
 }
 
 // *****************************************************************************
@@ -253,6 +255,10 @@ Piramide::Piramide()
 
   //Coloreamos la figura
   colorear();
+
+  calcular_normales();
+
+  material.activar();
 }
 // *****************************************************************************
 //
@@ -268,6 +274,8 @@ ObjPLY::ObjPLY(const std::string &nombre_archivo)
   colorear();
 
   calcular_normales();
+
+  material.activar();
 }
 
 // *****************************************************************************
@@ -307,6 +315,8 @@ ObjRevolucion::ObjRevolucion(const std::string &nombre_ply_perfil)
   colorear();
 
   calcular_normales();
+
+  material.activar();
 }
 
 
