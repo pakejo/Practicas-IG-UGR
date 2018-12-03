@@ -12,10 +12,18 @@
 
 #include "aux.h"
 
+#include "CImg.h"
+using namespace cimg_library;
+
+// *****************************************************************************
+//
+// Estructura para datos de material
+//
+// *****************************************************************************
 struct Material
 {
-  std::vector<GLfloat> material_difuso = {0.75164, 0.60648, 0.22648, 1.0}, 
-                       material_especular = {0.628281, 0.555802, 0.366065, 1.0}, 
+  std::vector<GLfloat> material_difuso = {0.75164, 0.60648, 0.22648, 1.0},
+                       material_especular = {0.628281, 0.555802, 0.366065, 1.0},
                        material_ambiental = {0.24725, 0.1995, 0.0745, 1.0};
 
   GLfloat brillo = 0.4;
@@ -137,6 +145,20 @@ class Piramide : public ObjMallaIndexada
 {
 public:
   Piramide();
+};
+
+class Cuadro : public ObjMallaIndexada
+{
+private:
+  std::vector<unsigned char> pixels;
+  GLuint textura_id;
+  int ancho, alto;
+
+  void PreparaTextura();
+
+public:
+  Cuadro();
+  void draw(int modo_vis, bool GPU_mode);
 };
 
 #endif

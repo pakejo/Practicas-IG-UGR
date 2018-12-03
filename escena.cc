@@ -20,24 +20,24 @@ Escena::Escena()
     float cdf_alfa[4] = {1.0, 1.0, 1.0, 1.0},
           caf_alfa[4] = {1.0, 1.0, 1.0, 1.0},
           cef_alfa[4] = {1.0, 1.0, 1.0, 1.0},
-          pos_alfa[4] = {30.0, 30.0, 30.0, 0.0};
+          pos_alfa[4] = {30.0, 10.0, 30.0, 0.0};
 
     //Magenta
     float cdf_beta[4] = {1.0, 0.0, 1.0, 1.0},
           caf_beta[4] = {0.0, 0.0, 0.0, 1.0},
           cef_beta[4] = {1.0, 0.0, 1.0, 1.0},
-          pos_beta[4] = {30.0, 30.0, 30.0, 1.0};
+          pos_beta[4] = {30.0, 10.0, 30.0, 1.0};
 
     // crear los objetos de las prácticas: Mallas o Jerárquicos....
     cubo = new Cubo();
     tetraedro = new Tetraedro();
-    PLY = new ObjPLY("plys/big_dodge.ply");
+    PLY = new ObjPLY("plys/gun.ply");
     Rev = new ObjRevolucion("plys/peon.ply");
     cilindro = new Cilindro("plys/cilindro.ply");
     esfera = new Esfera("plys/esfera.ply");
     cono = new Cono("plys/cono.ply");
     jerarquico = new ObjJerarquico();
-    piramide = new Piramide();
+    cuadro = new Cuadro();
 
     foco = new Luz(cdf_alfa, cef_alfa, caf_alfa, pos_alfa);
     foco->nueva_luz(cdf_beta, cef_beta, caf_beta, pos_beta);
@@ -164,10 +164,10 @@ void Escena::dibujar_objeto_actual(bool shade_model)
         }
         break;
     case 8:
-        if (piramide != nullptr)
+        if (cuadro != nullptr)
         {
-            piramide->draw(mode, cambia_modo);
-            piramide->activar_Material();
+            cuadro->draw(mode, cambia_modo);
+            //cuadro->activar();
         }
         break;
     default:
@@ -403,8 +403,6 @@ Luz::Luz(float cdf[], float cef[], float caf[], float posf[])
 
 void Luz::activar() //Cambiar
 {
-    using namespace std;
-
     //Habilitamos iluminacion
     glEnable(GL_LIGHTING);
 
@@ -428,7 +426,6 @@ void Luz::activar() //Cambiar
                 glMultMatrixd(translate);
                 glRotatef(angulo_rotacion, 0.0, 1.0, 0.0);
                 glLightfv(luces[i], GL_POSITION, datos_luces[i].pos);
-                cout << "Angulo rotado: " << angulo_rotacion << endl;
             glPopMatrix();
         }
         else

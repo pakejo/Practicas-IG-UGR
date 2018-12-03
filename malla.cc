@@ -17,6 +17,9 @@ void ObjMallaIndexada::draw_ModoInmediato(int modo_vis)
   // completar (práctica 1)
   glEnableClientState(GL_VERTEX_ARRAY);
   glEnableClientState(GL_NORMAL_ARRAY);
+  glEnable(GL_TEXTURE_2D);
+  glEnable(GL_TEXTURE_GEN_S);
+  glEnable(GL_TEXTURE_GEN_T);
 
   glVertexPointer(3, GL_FLOAT, 0, vertices.data());
 
@@ -28,6 +31,9 @@ void ObjMallaIndexada::draw_ModoInmediato(int modo_vis)
   else
     glDrawElements(GL_TRIANGLES, triangulos.size() * 3, GL_UNSIGNED_INT, triangulos.data());
 
+  glDisable(GL_TEXTURE_2D);
+  glDisable(GL_TEXTURE_GEN_S);
+  glDisable(GL_TEXTURE_GEN_T);
   glDisableClientState(GL_VERTEX_ARRAY);
   glDisableClientState(GL_NORMAL_ARRAY);
 }
@@ -131,8 +137,6 @@ void ObjMallaIndexada::colorear()
   }
 }
 
-//std::vector<Tupla3f> ObjMallaIndexada::getColores() { return colores; }
-
 // -----------------------------------------------------------------------------
 // Recalcula la tabla de normales de vértices (el contenido anterior se pierde)
 
@@ -166,9 +170,25 @@ void ObjMallaIndexada::calcular_normales()
     normales_vertices[i] = normales_vertices[i].normalized();
 }
 
+void Material::activar()
+{
+  //Modificar reflectividad difusa, especular y ambiental
+  glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, material_ambiental.data());
+  glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, material_difuso.data());
+  glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, material_especular.data());
+
+  //Modificar el exponente de brillo
+  glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, brillo * 128.0);
+}
+
+void ObjMallaIndexada::activar_Material()
+{
+  material.activar();
+}
+
 // *****************************************************************************
 //
-// Clase Cubo (práctica 1)
+// Clase Cubo
 //
 // *****************************************************************************
 
@@ -202,7 +222,7 @@ Cubo::Cubo()
 
 // *****************************************************************************
 //
-// Clase Tetraedro (práctica 1)
+// Clase Tetraedro
 //
 // *****************************************************************************
 
@@ -258,9 +278,44 @@ Piramide::Piramide()
 
   material.activar();
 }
+
 // *****************************************************************************
 //
-// Clase ObjPLY (práctica 2)
+// Clase Cuadro
+//
+// *****************************************************************************
+Cuadro::Cuadro()
+{
+  vertices = {
+      {+10.0, 0.0, 0.0},
+      {-10.0, 0.0, 0.0},
+      {+10.0, 10.0, 0.0},
+      {-10.0, 10.0, 0.0},
+  };
+
+  triangulos = {
+      {0, 2, 1},
+      {1, 2, 3},
+  };
+
+  calcular_normales();
+  PreparaTextura();
+};
+
+void Cuadro::draw(int modo_vis, bool GPU_mode)
+{
+  // TRASFIERE LOS DATOS A GPU
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, ancho, alto, 0, GL_RGB, GL_UNSIGNED_BYTE, pixels.data());
+
+  if (GPU_mode == 0)
+    draw_ModoInmediato(modo_vis);
+  else
+    draw_ModoDiferido();
+}
+
+// *****************************************************************************
+//
+// Clase ObjPLY
 //
 // *****************************************************************************
 
@@ -278,7 +333,7 @@ ObjPLY::ObjPLY(const std::string &nombre_archivo)
 
 // *****************************************************************************
 //
-// Clase ObjRevolucion (práctica 2)
+// Clase ObjRevolucion
 //
 // *****************************************************************************
 
@@ -303,7 +358,7 @@ inline Tupla3f rotar_vertice(Tupla3f vertice, int i, int N)
 
 ObjRevolucion::ObjRevolucion(const std::string &nombre_ply_perfil)
 {
-  // completar ......(práctica 2)
+  // completar .....
   std::vector<Tupla3f> perfil_original;
 
   ply::read_vertices(nombre_ply_perfil, perfil_original);
@@ -384,14 +439,14 @@ void ObjRevolucion::crearMalla(const std::vector<Tupla3f> perfil_original, const
 
 // *****************************************************************************
 //
-// Clase Cono (práctica 2)
+// Clase Cono
 //
 // *****************************************************************************
 Cono::Cono(const std::string &nombre_ply_perfil) : ObjRevolucion(nombre_ply_perfil) {}
 
 // *****************************************************************************
 //
-// Clase Cilindro (práctica 2)
+// Clase Cilindro
 //
 // *****************************************************************************
 
@@ -399,24 +454,49 @@ Cilindro::Cilindro(const std::string &nombre_ply_perfil) : ObjRevolucion(nombre_
 
 // *****************************************************************************
 //
-// Clase Esfera (práctica 2)
+// Clase Esfera
 //
 // *****************************************************************************
 
 Esfera::Esfera(const std::string &nombre_ply_perfil) : ObjRevolucion(nombre_ply_perfil) {}
 
-void Material::activar()
+/////////////////////////////////////////////////////////////////////////////////////////////////
+void Cuadro::PreparaTextura()
 {
-  //Modificar reflectividad difusa, especular y ambiental
-  glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, material_ambiental.data());
-  glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, material_difuso.data());
-  glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, material_especular.data());
+  CImg<unsigned char> foto;
+  unsigned char *r, *g, *b;
 
-  //Modificar el exponente de brillo
-  glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, brillo * 128.0);
-}
+  foto.load("./cuadros/imagen.jpg");
 
-void ObjMallaIndexada::activar_Material()
-{
-  material.activar();
+  for (int y = 0; y < foto.height(); y++)
+    for (int x = 0; x < foto.width(); x++)
+    {
+      unsigned char *r = foto.data(x, y, 0, 0);
+      unsigned char *g = foto.data(x, y, 0, 1);
+      unsigned char *b = foto.data(x, y, 0, 2);
+      pixels.push_back(*r);
+      pixels.push_back(*g);
+      pixels.push_back(*b);
+    }
+
+  this->ancho = foto.width();
+  this->alto = foto.height();
+
+  std::cout << "Imagen cargada. Ancho: " << foto.width() << " Alto: " << foto.height() << " Nº pixeles: " << pixels.size() / 3 << std::endl;
+
+  glGenTextures(1, &textura_id);
+  glBindTexture(GL_TEXTURE_2D, textura_id);
+
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+  glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_EYE_LINEAR);
+  glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_EYE_LINEAR);
+  glLightModeli(GL_LIGHT_MODEL_COLOR_CONTROL, GL_SINGLE_COLOR);
+
+  glEnable(GL_TEXTURE_GEN_S); // desactivado inicialmente
+  glEnable(GL_TEXTURE_GEN_T);
+  glEnable(GL_TEXTURE_2D);
 }

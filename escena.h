@@ -90,7 +90,7 @@ private:
   Cilindro *cilindro = nullptr;
   Esfera *esfera = nullptr;
   ObjJerarquico *jerarquico = nullptr;
-  Piramide *piramide = nullptr;
+  Cuadro *cuadro = nullptr;
 
   Luz *foco = nullptr;
 
