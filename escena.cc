@@ -31,7 +31,7 @@ Escena::Escena()
     // crear los objetos de las prácticas: Mallas o Jerárquicos....
     cubo = new Cubo();
     tetraedro = new Tetraedro();
-    PLY = new ObjPLY("plys/gun.ply");
+    PLY = new ObjPLY("plys/fractree.ply");
     Rev = new ObjRevolucion("plys/peon.ply");
     cilindro = new Cilindro("plys/cilindro.ply");
     esfera = new Esfera("plys/esfera.ply");
@@ -69,9 +69,6 @@ void Escena::dibujar_objeto_actual(bool shade_model)
 {
     using namespace std;
 
-    // (1) configurar OpenGL para el modo actual (puntos/lineas/sólido)
-    //    llamar glPolygonMode, glColor... (y alguna cosas más), según dicho modo
-    // .........completar (práctica 1)
     switch (mode)
     {
     case 0: //Muestra las lineas (modo lineas)
@@ -103,8 +100,6 @@ void Escena::dibujar_objeto_actual(bool shade_model)
         break;
     }
 
-    // (2) dibujar el objeto actual usando método 'draw' del objeto asociado al
-    // valor entero en 'objeto_actual'
 
     switch (objeto_actual)
     {
@@ -167,7 +162,7 @@ void Escena::dibujar_objeto_actual(bool shade_model)
         if (cuadro != nullptr)
         {
             cuadro->draw(mode, cambia_modo);
-            //cuadro->activar();
+            cuadro->PreparaTextura();
         }
         break;
     default:

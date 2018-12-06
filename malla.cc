@@ -16,26 +16,28 @@ void ObjMallaIndexada::draw_ModoInmediato(int modo_vis)
   // visualizar la malla usando glDrawElements,
   // completar (práctica 1)
   glEnableClientState(GL_VERTEX_ARRAY);
-  glEnableClientState(GL_NORMAL_ARRAY);
-  glEnable(GL_TEXTURE_2D);
-  glEnable(GL_TEXTURE_GEN_S);
-  glEnable(GL_TEXTURE_GEN_T);
-
   glVertexPointer(3, GL_FLOAT, 0, vertices.data());
 
   if (glIsEnabled(GL_LIGHTING) == GL_TRUE)
+  {
+    glEnableClientState(GL_NORMAL_ARRAY);
     glNormalPointer(GL_FLOAT, 0, normales_vertices.data());
+  }
+
+  if (glIsEnabled(GL_TEXTURE_2D) == GL_TRUE)
+  {
+    glEnableClientState( GL_TEXTURE_COORD_ARRAY );
+    glTexCoordPointer( 2, GL_FLOAT, 0, coord_textura.data());
+  }
 
   if (modo_vis == 3)
     this->draw_ModoAjedrez();
   else
     glDrawElements(GL_TRIANGLES, triangulos.size() * 3, GL_UNSIGNED_INT, triangulos.data());
 
-  glDisable(GL_TEXTURE_2D);
-  glDisable(GL_TEXTURE_GEN_S);
-  glDisable(GL_TEXTURE_GEN_T);
   glDisableClientState(GL_VERTEX_ARRAY);
   glDisableClientState(GL_NORMAL_ARRAY);
+  glDisableClientState( GL_TEXTURE_COORD_ARRAY );
 }
 
 void ObjMallaIndexada::draw_ModoAjedrez()
@@ -287,10 +289,10 @@ Piramide::Piramide()
 Cuadro::Cuadro()
 {
   vertices = {
-      {+10.0, 0.0, 0.0},
-      {-10.0, 0.0, 0.0},
-      {+10.0, 10.0, 0.0},
-      {-10.0, 10.0, 0.0},
+      {+10.0, -5.0, 0.0},
+      {-10.0, -5.0, 0.0},
+      {+10.0, 5.0, 0.0},
+      {-10.0, 5.0, 0.0},
   };
 
   triangulos = {
@@ -298,20 +300,62 @@ Cuadro::Cuadro()
       {1, 2, 3},
   };
 
+  coord_textura = {
+    {1.0, 1.0},
+    {0.0, 1.0},
+    {1.0, 0.0},
+    {0.0, 0.0},
+  };
+
   calcular_normales();
+
+  CImg<unsigned char> foto;
+  unsigned char *r, *g, *b;
+
+  foto.load("./cuadros/imagen.jpg");
+
+  for (int y = 0; y < foto.height(); y++)
+    for (int x = 0; x < foto.width(); x++)
+    {
+      unsigned char *r = foto.data(x, y, 0, 0);
+      unsigned char *g = foto.data(x, y, 0, 1);
+      unsigned char *b = foto.data(x, y, 0, 2);
+      pixels.push_back(*r);
+      pixels.push_back(*g);
+      pixels.push_back(*b);
+    }
+
+  this->ancho = foto.width();
+  this->alto = foto.height();
+
+  std::cout << "Imagen cargada. Ancho: " << foto.width() << " Alto: " << foto.height() << " Nº pixeles: " << pixels.size() / 3 << std::endl;
+
   PreparaTextura();
 };
 
-void Cuadro::draw(int modo_vis, bool GPU_mode)
+void Cuadro::PreparaTextura()
 {
-  // TRASFIERE LOS DATOS A GPU
+  glDisable(GL_LIGHTING);
+  glEnable(GL_TEXTURE_2D);
+
+  // Generamos el id de la textura y la activamos
+  glGenTextures(1, &textura_id);
+  glBindTexture(GL_TEXTURE_2D, textura_id);
+
+  // Establecer parametros de la textura
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+  // Utilizar el color de la textura
+  glTexEnvi(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_DECAL);
+
+  // Transfiere los datos a la GPU
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, ancho, alto, 0, GL_RGB, GL_UNSIGNED_BYTE, pixels.data());
 
-  if (GPU_mode == 0)
-    draw_ModoInmediato(modo_vis);
-  else
-    draw_ModoDiferido();
 }
+
 
 // *****************************************************************************
 //
@@ -461,42 +505,3 @@ Cilindro::Cilindro(const std::string &nombre_ply_perfil) : ObjRevolucion(nombre_
 Esfera::Esfera(const std::string &nombre_ply_perfil) : ObjRevolucion(nombre_ply_perfil) {}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
-void Cuadro::PreparaTextura()
-{
-  CImg<unsigned char> foto;
-  unsigned char *r, *g, *b;
-
-  foto.load("./cuadros/imagen.jpg");
-
-  for (int y = 0; y < foto.height(); y++)
-    for (int x = 0; x < foto.width(); x++)
-    {
-      unsigned char *r = foto.data(x, y, 0, 0);
-      unsigned char *g = foto.data(x, y, 0, 1);
-      unsigned char *b = foto.data(x, y, 0, 2);
-      pixels.push_back(*r);
-      pixels.push_back(*g);
-      pixels.push_back(*b);
-    }
-
-  this->ancho = foto.width();
-  this->alto = foto.height();
-
-  std::cout << "Imagen cargada. Ancho: " << foto.width() << " Alto: " << foto.height() << " Nº pixeles: " << pixels.size() / 3 << std::endl;
-
-  glGenTextures(1, &textura_id);
-  glBindTexture(GL_TEXTURE_2D, textura_id);
-
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
-  glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_EYE_LINEAR);
-  glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_EYE_LINEAR);
-  glLightModeli(GL_LIGHT_MODEL_COLOR_CONTROL, GL_SINGLE_COLOR);
-
-  glEnable(GL_TEXTURE_GEN_S); // desactivado inicialmente
-  glEnable(GL_TEXTURE_GEN_T);
-  glEnable(GL_TEXTURE_2D);
-}

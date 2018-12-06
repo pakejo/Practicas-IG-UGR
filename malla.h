@@ -10,8 +10,11 @@
 #ifndef OBJETOS_H_INCLUDED
 #define OBJETOS_H_INCLUDED
 
-#include "aux.h"
+#ifdef MACOS
+#define cimg_display 0
+#endif
 
+#include "aux.h"
 #include "CImg.h"
 using namespace cimg_library;
 
@@ -66,6 +69,7 @@ protected:
   // completar: tabla de colores, tabla de normales de vértices
   std::vector<Tupla3f> colores;
   std::vector<Tupla3f> normales_vertices;
+  std::vector<Tupla2f> coord_textura;
 
   Material material;
 };
@@ -154,11 +158,9 @@ private:
   GLuint textura_id;
   int ancho, alto;
 
-  void PreparaTextura();
-
 public:
   Cuadro();
-  void draw(int modo_vis, bool GPU_mode);
+  void PreparaTextura();
 };
 
 #endif
