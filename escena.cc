@@ -31,7 +31,7 @@ Escena::Escena()
     // crear los objetos de las prácticas: Mallas o Jerárquicos....
     cubo = new Cubo();
     tetraedro = new Tetraedro();
-    PLY = new ObjPLY("plys/fractree.ply");
+    PLY = new ObjPLY("plys/big_dodge.ply");
     Rev = new ObjRevolucion("plys/peon.ply");
     cilindro = new Cilindro("plys/cilindro.ply");
     esfera = new Esfera("plys/esfera.ply");
@@ -65,7 +65,7 @@ void Escena::inicializar(int UI_window_width, int UI_window_height)
 // (llamada desde Escena::dibujar)
 // ***************************************************************************
 
-void Escena::dibujar_objeto_actual(bool shade_model)
+void Escena::dibujar_objeto_actual()
 {
     using namespace std;
 
@@ -80,7 +80,7 @@ void Escena::dibujar_objeto_actual(bool shade_model)
         glEnableClientState(GL_COLOR_ARRAY);
         glEnable(GL_NORMALIZE);
 
-        if(shade_model)
+        if (shade_model)
             glShadeModel(GL_SMOOTH);
         else
             glShadeModel(GL_FLAT);
@@ -99,7 +99,6 @@ void Escena::dibujar_objeto_actual(bool shade_model)
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         break;
     }
-
 
     switch (objeto_actual)
     {
@@ -184,7 +183,7 @@ void Escena::dibujar()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Limpiar la pantalla
     change_observer();
     ejes.draw();
-    dibujar_objeto_actual(shade_model);
+    dibujar_objeto_actual();
 }
 
 //**************************************************************************
@@ -213,22 +212,36 @@ bool Escena::teclaPulsada(unsigned char tecla, int x, int y)
         break;
     case 'M':
         // cambiar el modo de vista
-        if (cambia_modo == false)
-            mode = (mode + 1) % 4;
-        else
-            mode = (mode + 1) % 3;
+        mode = (mode + 1) % 4;
+
         break;
     case 'V':
-        //cambia el modo de vista
-        if (cambia_modo == false)
+        //Se cambia el modo de dibujo de inmediato a diferido
+        if (!mode)
         {
-            cambia_modo = true;
-            cout << "Cambio a modo diferido" << endl;
+            cout << "Se cambia el modo de dibujo a inmediato " << endl;
+            mode = true;
+            cubo->draw(mode, cambia_modo);
+            tetraedro->draw(mode, cambia_modo);
+            PLY->draw(mode, cambia_modo);
+            cilindro->draw(mode, cambia_modo);
+            esfera->draw(mode, cambia_modo);
+            Rev->draw(mode, cambia_modo);
+            jerarquico->draw(mode, cambia_modo);
+            cuadro->draw(mode, cambia_modo);
         }
         else
         {
-            cambia_modo = false;
-            cout << "Cambio a modo inmediato" << endl;
+            cout << "Se cambia el modo de dibujo a diferido" << endl;
+            mode = false;
+            cubo->draw(mode, cambia_modo);
+            tetraedro->draw(mode, cambia_modo);
+            PLY->draw(mode, cambia_modo);
+            cilindro->draw(mode, cambia_modo);
+            esfera->draw(mode, cambia_modo);
+            Rev->draw(mode, cambia_modo);
+            jerarquico->draw(mode, cambia_modo);
+            cuadro->draw(mode, cambia_modo);
         }
         break;
     case 'P':
@@ -349,7 +362,7 @@ void Escena::mgeDesocupado()
     if (glIsEnabled(GL_LIGHTING) == GL_TRUE)
         foco->incrementa_angulo();
 
-    if(objeto_actual == 7)
+    if (objeto_actual == 7)
         jerarquico->actualizarEstado();
     glutPostRedisplay();
 }
@@ -417,15 +430,14 @@ void Luz::activar() //Cambiar
         {
             glMatrixMode(GL_MODELVIEW);
             glPushMatrix();
-                glLoadIdentity();
-                glMultMatrixd(translate);
-                glRotatef(angulo_rotacion, 0.0, 1.0, 0.0);
-                glLightfv(luces[i], GL_POSITION, datos_luces[i].pos);
+            glLoadIdentity();
+            glMultMatrixd(translate);
+            glRotatef(angulo_rotacion, 0.0, 1.0, 0.0);
+            glLightfv(luces[i], GL_POSITION, datos_luces[i].pos);
             glPopMatrix();
         }
         else
             glLightfv(luces[i], GL_POSITION, datos_luces[i].pos);
-
     }
 }
 
@@ -457,7 +469,7 @@ void Luz::nueva_luz(float cdf[], float cef[], float caf[], float posf[])
 }
 
 //***************************************************************************
-// Funcion encargada de incrementar el angulo de rotacion de la luz 
+// Funcion encargada de incrementar el angulo de rotacion de la luz
 //***************************************************************************
 void Luz::incrementa_angulo()
 {

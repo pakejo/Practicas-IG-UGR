@@ -64,7 +64,7 @@ protected:
   std::vector<Tupla3f> vertices;   // tabla de coordenadas de vértices (una tupla por vértice, con tres floats)
   std::vector<Tupla3i> triangulos; // una terna de 3 enteros por cada cara o triángulo
 
-  GLuint id_vbo_ver, id_vbo_tri; // identificadores de vbo
+  GLuint id_vbo_ver, id_vbo_tri, id_vbo_colores, id_vbo_normales; // identificadores de vbo
 
   // completar: tabla de colores, tabla de normales de vértices
   std::vector<Tupla3f> colores;

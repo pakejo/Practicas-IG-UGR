@@ -13,8 +13,6 @@
 
 void ObjMallaIndexada::draw_ModoInmediato(int modo_vis)
 {
-  // visualizar la malla usando glDrawElements,
-  // completar (práctica 1)
   glEnableClientState(GL_VERTEX_ARRAY);
   glVertexPointer(3, GL_FLOAT, 0, vertices.data());
 
@@ -26,8 +24,8 @@ void ObjMallaIndexada::draw_ModoInmediato(int modo_vis)
 
   if (glIsEnabled(GL_TEXTURE_2D) == GL_TRUE)
   {
-    glEnableClientState( GL_TEXTURE_COORD_ARRAY );
-    glTexCoordPointer( 2, GL_FLOAT, 0, coord_textura.data());
+    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+    glTexCoordPointer(2, GL_FLOAT, 0, coord_textura.data());
   }
 
   if (modo_vis == 3)
@@ -35,9 +33,16 @@ void ObjMallaIndexada::draw_ModoInmediato(int modo_vis)
   else
     glDrawElements(GL_TRIANGLES, triangulos.size() * 3, GL_UNSIGNED_INT, triangulos.data());
 
+  if (glIsEnabled(GL_TEXTURE_2D) == GL_TRUE)
+  {
+    glDisable(GL_TEXTURE_2D);
+    glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+  }
+
+  if (glIsEnabled(GL_LIGHTING) == GL_TRUE)
+    glDisableClientState(GL_NORMAL_ARRAY);
+
   glDisableClientState(GL_VERTEX_ARRAY);
-  glDisableClientState(GL_NORMAL_ARRAY);
-  glDisableClientState( GL_TEXTURE_COORD_ARRAY );
 }
 
 void ObjMallaIndexada::draw_ModoAjedrez()
@@ -88,29 +93,30 @@ GLuint CrearVBO(GLuint tipo_vbo, GLuint tamanio_bytes, GLvoid *puntero_ram)
 
 void ObjMallaIndexada::draw_ModoDiferido()
 {
-  // (la primera vez, se deben crear los VBOs y guardar sus identificadores en el objeto)
-  // completar (práctica 1)
-  if (id_vbo_ver == 0)
-    id_vbo_ver = CrearVBO(GL_ARRAY_BUFFER, vertices.size() * 3 * sizeof(float), vertices.data());
+	if (glIsEnabled(GL_LIGHTING) == GL_TRUE){
+		glEnableClientState(GL_NORMAL_ARRAY);
+    glNormalPointer(GL_FLOAT, 0, normales_vertices.data());
+	}
+	
+	if (id_vbo_ver == 0)
+		id_vbo_ver = CrearVBO(GL_ARRAY_BUFFER, vertices.size() * 3 * sizeof(float), vertices.data());
 
-  if (id_vbo_tri == 0)
-    id_vbo_tri = CrearVBO(GL_ELEMENT_ARRAY_BUFFER, triangulos.size() * 3 * sizeof(float), triangulos.data());
+	if (id_vbo_tri == 0)
+		id_vbo_tri = CrearVBO(GL_ELEMENT_ARRAY_BUFFER, triangulos.size() * 3 * sizeof(float), triangulos.data());
 
-  // especificar localización y formato de la tabla de vértices, habilitar tabla
+	// especificar localización y formato de la tabla de vértices, habilitar tabla
+	glBindBuffer(GL_ARRAY_BUFFER, id_vbo_ver); // activar VBO de vértices
+	glVertexPointer(3, GL_FLOAT, 0, 0);		   // especifica formato y offset (=0)
+	glBindBuffer(GL_ARRAY_BUFFER, 0);		   // desactivar VBO de vértices.
+	glEnableClientState(GL_VERTEX_ARRAY);	  // habilitar tabla de vértices
 
-  glBindBuffer(GL_ARRAY_BUFFER, id_vbo_ver); // activar VBO de vértices
-  glVertexPointer(3, GL_FLOAT, 0, 0);        // especifica formato y offset (=0)
-  glBindBuffer(GL_ARRAY_BUFFER, 0);          // desactivar VBO de vértices.
-  glEnableClientState(GL_VERTEX_ARRAY);      // habilitar tabla de vértices
+	// visualizar triángulos con glDrawElements (puntero a tabla == 0)
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, id_vbo_tri); // activar VBO de triángulos
+	glDrawElements(GL_TRIANGLES, 3 * triangulos.size(), GL_UNSIGNED_INT, 0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); // desactivar VBO de triángulos
 
-  // visualizar triángulos con glDrawElements (puntero a tabla == 0)
-
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, id_vbo_tri); // activar VBO de triángulos
-  glDrawElements(GL_TRIANGLES, 3 * triangulos.size(), GL_UNSIGNED_INT, 0);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); // desactivar VBO de triángulos
-
-  // desactivar uso de array de vértices
-  glDisableClientState(GL_VERTEX_ARRAY);
+	// desactivar uso de array de vértices
+	glDisableClientState(GL_VERTEX_ARRAY);
 }
 // -----------------------------------------------------------------------------
 // Función de visualización de la malla,
@@ -121,7 +127,7 @@ void ObjMallaIndexada::draw(int modo_vis, bool GPU_mode)
   // completar .....(práctica 1)
   glColorPointer(3, GL_FLOAT, 0, colores.data());
 
-  if (GPU_mode == 0)
+  if (!GPU_mode)
     draw_ModoInmediato(modo_vis);
   else
     draw_ModoDiferido();
@@ -301,10 +307,10 @@ Cuadro::Cuadro()
   };
 
   coord_textura = {
-    {1.0, 1.0},
-    {0.0, 1.0},
-    {1.0, 0.0},
-    {0.0, 0.0},
+      {1.0, 1.0},
+      {0.0, 1.0},
+      {1.0, 0.0},
+      {0.0, 0.0},
   };
 
   calcular_normales();
@@ -349,13 +355,11 @@ void Cuadro::PreparaTextura()
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
   // Utilizar el color de la textura
-  glTexEnvi(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_DECAL);
+  glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
 
   // Transfiere los datos a la GPU
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, ancho, alto, 0, GL_RGB, GL_UNSIGNED_BYTE, pixels.data());
-
 }
-
 
 // *****************************************************************************
 //

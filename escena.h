@@ -63,7 +63,7 @@ private:
   GLfloat Width, Height, Front_plane, Back_plane;
 
   void clear_window();
-  void dibujar_objeto_actual(bool shade_model);
+  void dibujar_objeto_actual();
 
   // Transformación de cámara
   void change_projection(const float ratio_xy);
