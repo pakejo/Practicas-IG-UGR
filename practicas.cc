@@ -97,6 +97,17 @@ void funcion_desocupado()
             escena->mgeDesocupado();
 }
 
+
+void clickRaton(int boton, int estado, int x, int y)
+{
+      escena->clickRaton(boton, estado, x, y);
+}
+
+void ratonMovido(int x, int y)
+{
+      escena->ratonMovido(x,y);
+}
+
 //***************************************************************************
 // Programa principal
 //
@@ -161,7 +172,9 @@ int main(int argc, char **argv)
       // funcion de inicialización de la escena (necesita que esté la ventana creada)
       escena->inicializar(UI_window_width, UI_window_height);
 
-      // TEST
+      // Interaccion del raton
+      glutMouseFunc(clickRaton);
+      glutMotionFunc(ratonMovido);
 
       // ejecutar del bucle de eventos
       glutMainLoop();

@@ -15,6 +15,7 @@
 #endif
 
 #include "aux.h"
+#include <cmath>
 #include "CImg.h"
 using namespace cimg_library;
 
@@ -25,9 +26,9 @@ using namespace cimg_library;
 // *****************************************************************************
 struct Material
 {
-  std::vector<GLfloat> material_difuso = {0.75164, 0.60648, 0.22648, 1.0},
-                       material_especular = {0.628281, 0.555802, 0.366065, 1.0},
-                       material_ambiental = {0.24725, 0.1995, 0.0745, 1.0};
+  std::vector<GLfloat> ref_difusa = {0.50754, 0.50754, 0.50754, 1.0},
+                       ref_especular = {0.508273, 0.508273, 0.508273, 1.0},
+                       ref_ambiental = {0.19225, 0.19225, 0.19225, 1.0};
 
   GLfloat brillo = 0.4;
 
@@ -57,21 +58,33 @@ public:
 
   void activar_Material();
 
+  void PreparaTextura();
+
 protected:
-  void calcular_normales(); // calcula tabla de normales de vértices (práctica 3)
-  void colorear();          //Funcion que va llenando el vector de colorees en funcion del objeto y sus vertices
+  void calcular_normales();                 // calcula tabla de normales de vértices (práctica 3)
+  void colorear();                          //Funcion que va llenando el vector de colorees en funcion del objeto y sus vertices
+  void cargar_imagen(const char *fileName); //Funcion para cargar una imagen en memoria
+  void calcular_coord_tex();
 
   std::vector<Tupla3f> vertices;   // tabla de coordenadas de vértices (una tupla por vértice, con tres floats)
   std::vector<Tupla3i> triangulos; // una terna de 3 enteros por cada cara o triángulo
 
-  GLuint id_vbo_ver, id_vbo_tri, id_vbo_colores, id_vbo_normales; // identificadores de vbo
+  GLuint id_vbo_ver, id_vbo_tri, id_vbo_colores; // identificadores de vbo
 
   // completar: tabla de colores, tabla de normales de vértices
   std::vector<Tupla3f> colores;
   std::vector<Tupla3f> normales_vertices;
   std::vector<Tupla2f> coord_textura;
 
+  // Datos del material
   Material material;
+
+  // Datos para texturas
+  std::vector<unsigned char> pixels;
+  GLuint textura_id;
+  int ancho, alto;
+  std::vector<Tupla3f> verticesP;
+  std::vector<Tupla3i> triangulosP;
 };
 
 // *****************************************************************************
@@ -154,13 +167,10 @@ public:
 class Cuadro : public ObjMallaIndexada
 {
 private:
-  std::vector<unsigned char> pixels;
-  GLuint textura_id;
-  int ancho, alto;
+  void CuadroEsquina();
 
 public:
   Cuadro();
-  void PreparaTextura();
 };
 
 #endif

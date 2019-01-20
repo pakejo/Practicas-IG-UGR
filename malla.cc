@@ -14,6 +14,19 @@
 void ObjMallaIndexada::draw_ModoInmediato(int modo_vis)
 {
   glEnableClientState(GL_VERTEX_ARRAY);
+
+  if (glIsEnabled(GL_TEXTURE_2D) == GL_TRUE)
+  {
+    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+    glTexCoordPointer(2, GL_FLOAT, 0, coord_textura.data());
+    //glVertexPointer(3, GL_FLOAT, 0, verticesP.data());
+    //glDrawElements(GL_TRIANGLES, triangulosP.size() * 3, GL_UNSIGNED_INT, triangulosP.data());
+    glVertexPointer(3, GL_FLOAT, 0, vertices.data());
+    glDrawElements(GL_TRIANGLES, triangulos.size() * 3, GL_UNSIGNED_INT, triangulos.data());
+    glDisable(GL_TEXTURE_2D);
+    glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+  }
+
   glVertexPointer(3, GL_FLOAT, 0, vertices.data());
 
   if (glIsEnabled(GL_LIGHTING) == GL_TRUE)
@@ -22,22 +35,10 @@ void ObjMallaIndexada::draw_ModoInmediato(int modo_vis)
     glNormalPointer(GL_FLOAT, 0, normales_vertices.data());
   }
 
-  if (glIsEnabled(GL_TEXTURE_2D) == GL_TRUE)
-  {
-    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-    glTexCoordPointer(2, GL_FLOAT, 0, coord_textura.data());
-  }
-
   if (modo_vis == 3)
     this->draw_ModoAjedrez();
   else
     glDrawElements(GL_TRIANGLES, triangulos.size() * 3, GL_UNSIGNED_INT, triangulos.data());
-
-  if (glIsEnabled(GL_TEXTURE_2D) == GL_TRUE)
-  {
-    glDisable(GL_TEXTURE_2D);
-    glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-  }
 
   if (glIsEnabled(GL_LIGHTING) == GL_TRUE)
     glDisableClientState(GL_NORMAL_ARRAY);
@@ -93,30 +94,31 @@ GLuint CrearVBO(GLuint tipo_vbo, GLuint tamanio_bytes, GLvoid *puntero_ram)
 
 void ObjMallaIndexada::draw_ModoDiferido()
 {
-	if (glIsEnabled(GL_LIGHTING) == GL_TRUE){
-		glEnableClientState(GL_NORMAL_ARRAY);
+  if (glIsEnabled(GL_LIGHTING) == GL_TRUE)
+  {
+    glEnableClientState(GL_NORMAL_ARRAY);
     glNormalPointer(GL_FLOAT, 0, normales_vertices.data());
-	}
-	
-	if (id_vbo_ver == 0)
-		id_vbo_ver = CrearVBO(GL_ARRAY_BUFFER, vertices.size() * 3 * sizeof(float), vertices.data());
+  }
 
-	if (id_vbo_tri == 0)
-		id_vbo_tri = CrearVBO(GL_ELEMENT_ARRAY_BUFFER, triangulos.size() * 3 * sizeof(float), triangulos.data());
+  if (id_vbo_ver == 0)
+    id_vbo_ver = CrearVBO(GL_ARRAY_BUFFER, vertices.size() * 3 * sizeof(float), vertices.data());
 
-	// especificar localización y formato de la tabla de vértices, habilitar tabla
-	glBindBuffer(GL_ARRAY_BUFFER, id_vbo_ver); // activar VBO de vértices
-	glVertexPointer(3, GL_FLOAT, 0, 0);		   // especifica formato y offset (=0)
-	glBindBuffer(GL_ARRAY_BUFFER, 0);		   // desactivar VBO de vértices.
-	glEnableClientState(GL_VERTEX_ARRAY);	  // habilitar tabla de vértices
+  if (id_vbo_tri == 0)
+    id_vbo_tri = CrearVBO(GL_ELEMENT_ARRAY_BUFFER, triangulos.size() * 3 * sizeof(float), triangulos.data());
 
-	// visualizar triángulos con glDrawElements (puntero a tabla == 0)
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, id_vbo_tri); // activar VBO de triángulos
-	glDrawElements(GL_TRIANGLES, 3 * triangulos.size(), GL_UNSIGNED_INT, 0);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); // desactivar VBO de triángulos
+  // especificar localización y formato de la tabla de vértices, habilitar tabla
+  glBindBuffer(GL_ARRAY_BUFFER, id_vbo_ver); // activar VBO de vértices
+  glVertexPointer(3, GL_FLOAT, 0, 0);        // especifica formato y offset (=0)
+  glBindBuffer(GL_ARRAY_BUFFER, 0);          // desactivar VBO de vértices.
+  glEnableClientState(GL_VERTEX_ARRAY);      // habilitar tabla de vértices
 
-	// desactivar uso de array de vértices
-	glDisableClientState(GL_VERTEX_ARRAY);
+  // visualizar triángulos con glDrawElements (puntero a tabla == 0)
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, id_vbo_tri); // activar VBO de triángulos
+  glDrawElements(GL_TRIANGLES, 3 * triangulos.size(), GL_UNSIGNED_INT, 0);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); // desactivar VBO de triángulos
+
+  // desactivar uso de array de vértices
+  glDisableClientState(GL_VERTEX_ARRAY);
 }
 // -----------------------------------------------------------------------------
 // Función de visualización de la malla,
@@ -181,9 +183,9 @@ void ObjMallaIndexada::calcular_normales()
 void Material::activar()
 {
   //Modificar reflectividad difusa, especular y ambiental
-  glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, material_ambiental.data());
-  glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, material_difuso.data());
-  glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, material_especular.data());
+  glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, ref_ambiental.data());
+  glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, ref_difusa.data());
+  glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, ref_especular.data());
 
   //Modificar el exponente de brillo
   glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, brillo * 128.0);
@@ -192,6 +194,71 @@ void Material::activar()
 void ObjMallaIndexada::activar_Material()
 {
   material.activar();
+}
+
+void ObjMallaIndexada::cargar_imagen(const char *FileName)
+{
+  CImg<unsigned char> foto;
+  unsigned char *r, *g, *b;
+
+  foto.load(FileName);
+
+  for (int y = foto.height(); y > 0; y--)
+    for (int x = foto.width(); x > 0; x--)
+    {
+      unsigned char *r = foto.data(x, y, 0, 0);
+      unsigned char *g = foto.data(x, y, 0, 1);
+      unsigned char *b = foto.data(x, y, 0, 2);
+      pixels.push_back(*r);
+      pixels.push_back(*g);
+      pixels.push_back(*b);
+    }
+
+  this->ancho = foto.width();
+  this->alto = foto.height();
+
+  std::cout << "Imagen cargada. Ancho: " << foto.width() << " Alto: " << foto.height() << " Nº pixeles: " << pixels.size() / 3 << std::endl;
+}
+
+void ObjMallaIndexada::PreparaTextura()
+{
+  glDisable(GL_LIGHTING);
+  glEnable(GL_TEXTURE_2D);
+
+  // Generamos el id de la textura y la activamos
+  glGenTextures(1, &textura_id);
+  glBindTexture(GL_TEXTURE_2D, textura_id);
+
+  // Establecer parametros de la textura
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+  // Utilizar el color de la textura
+  glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
+
+  // Transfiere los datos a la GPU
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, ancho, alto, 0, GL_RGB, GL_UNSIGNED_BYTE, pixels.data());
+}
+
+void ObjMallaIndexada::calcular_coord_tex()
+{
+  float alfa, beta;
+  float u, v;
+
+  int tam = vertices.size();
+
+  for (int i = 0; i < tam; i++)
+  {
+    alfa = atan2(vertices[i](2), vertices[i](0));
+    beta = atan2(vertices[i](1), sqrt(pow(vertices[i](0), 2) + pow(vertices[i](2), 2)));
+
+    u = 0.5 + (alfa / (2 * 3.141516));
+    v = 0.5 + (beta / 3.141516);
+
+    coord_textura.push_back({u, v});
+  }
 }
 
 // *****************************************************************************
@@ -214,9 +281,6 @@ Cubo::Cubo()
       {+0.5, +0.5, -0.5}, // 6
       {+0.5, +0.5, +0.5}  // 7
   };
-  // inicializar la tabla de caras o triángulos:
-  // (es importante en cada cara ordenar los vértices en sentido contrario
-  //  de las agujas del reloj, cuando esa cara se observa desde el exterior del cubo)
 
   triangulos = {
       {0, 2, 4}, {4, 2, 6}, {1, 5, 3}, {3, 5, 7}, {1, 3, 0}, {0, 3, 2}, {5, 4, 7}, {7, 4, 6}, {1, 0, 5}, {5, 0, 4}, {3, 7, 2}, {2, 7, 6}};
@@ -226,6 +290,12 @@ Cubo::Cubo()
   colorear();
 
   calcular_normales();
+
+  /*cargar_imagen("./cuadros/imagen2.jpg");
+
+  calcular_coord_tex();
+
+  PreparaTextura();*/
 }
 
 // *****************************************************************************
@@ -252,6 +322,12 @@ Tetraedro::Tetraedro()
   calcular_normales();
 
   material.activar();
+
+  /*cargar_imagen("./cuadros/imagen2.jpg");
+
+  calcular_coord_tex();
+
+  PreparaTextura();*/
 }
 
 // *****************************************************************************
@@ -264,28 +340,68 @@ Piramide::Piramide()
 {
   //Inicializar tabla de vertices
   vertices = {
-      {+0.0, +0.0, +0.0},
-      {-5.0, +0.0, +0.0},
-      {-5.0, +0.0, -5.0},
-      {+5.0, +0.0, -5.0},
-      {+5.0, +0.0, +5.0},
-      {+0.0, +0.0, +5.0},
-      {+0.0, +5.0, +0.0},
-      {+0.0, +0.0, -5.0},
-      {+5.0, +0.0, +0.0},
+      {+0.0, 0.0, +0.0},  // 0
+      {+1.0, -1.0, -1.0}, // 1
+      {+1.0, -1.0, +1.0}, // 2
+      {-1.0, -1.0, +1.0}, // 3
+      {-1.0, -1.0, -1.0}, // 4
+
+      {0.0, +1.0, 0.0},     // 5
+      {+0.75, -0.25, -0.75}, // 6
+      {+0.75, -0.25, +0.75}, // 7
+      {-0.75, -0.25, +0.75}, // 8
+      {-0.75, -0.25, -0.75},  // 9
+
+      {0.0, +1.5, 0.0},    // 10
+      {+0.50, 0.5, -0.50}, // 11
+      {+0.50, 0.5, +0.50}, // 12
+      {-0.50, 0.5, +0.50}, // 13
+      {-0.50, 0.5, -0.50},  // 14
+
+      {0.0, +2.0, 0.0},    // 15
+      {+0.25, 1.25, -0.25}, // 16
+      {+0.25, 1.25, +0.25}, // 17
+      {-0.25, 1.25, +0.25}, // 18
+      {-0.25, 1.25, -0.25}  // 19
   };
 
-  //Inicializar tabla de triangulos
   triangulos = {
-      {0, 6, 1}, {1, 6, 2}, {2, 6, 3}, {3, 6, 4}, {4, 6, 5}, {5, 6, 0}, {1, 2, 0}, {0, 2, 7}, {0, 7, 8}, {8, 7, 3}, {5, 0, 4}, {4, 0, 8}};
+      {0, 3, 2},
+      {0, 2, 1},
+      {0, 1, 4},
+      {0, 4, 3},
+      {2, 3, 1},
+      {1, 3, 4},
+
+      {5, 8, 7},
+      {5, 7, 6},
+      {5, 6, 9},
+      {5, 9, 8},
+      {7, 8, 6},
+      {6, 8, 9},
+
+      {10, 13, 12},
+      {10, 12, 11},
+      {10, 11, 14},
+      {10, 14, 13},
+      {12, 13, 11},
+      {11, 13, 14},
+
+      {15, 18, 17},
+      {15, 17, 16},
+      {15, 16, 19},
+      {15, 19, 18},
+      {17, 18, 16},
+      {16, 18, 19}
+  };
 
   //Coloreamos la figura
   colorear();
 
-  calcular_normales();
-
-  material.activar();
-}
+  cargar_imagen("./cuadros/abeto.jpg");
+  calcular_coord_tex();
+  PreparaTextura();
+};
 
 // *****************************************************************************
 //
@@ -307,58 +423,33 @@ Cuadro::Cuadro()
   };
 
   coord_textura = {
-      {1.0, 1.0},
-      {0.0, 1.0},
-      {1.0, 0.0},
       {0.0, 0.0},
+      {1.0, 0.0},
+      {0.0, 1.0},
+      {1.0, 1.0},
   };
 
+  CuadroEsquina();
   calcular_normales();
-
-  CImg<unsigned char> foto;
-  unsigned char *r, *g, *b;
-
-  foto.load("./cuadros/imagen.jpg");
-
-  for (int y = 0; y < foto.height(); y++)
-    for (int x = 0; x < foto.width(); x++)
-    {
-      unsigned char *r = foto.data(x, y, 0, 0);
-      unsigned char *g = foto.data(x, y, 0, 1);
-      unsigned char *b = foto.data(x, y, 0, 2);
-      pixels.push_back(*r);
-      pixels.push_back(*g);
-      pixels.push_back(*b);
-    }
-
-  this->ancho = foto.width();
-  this->alto = foto.height();
-
-  std::cout << "Imagen cargada. Ancho: " << foto.width() << " Alto: " << foto.height() << " Nº pixeles: " << pixels.size() / 3 << std::endl;
-
+  cargar_imagen("./cuadros/imagen2.jpg");
   PreparaTextura();
 };
 
-void Cuadro::PreparaTextura()
+void Cuadro::CuadroEsquina()
 {
-  glDisable(GL_LIGHTING);
-  glEnable(GL_TEXTURE_2D);
+  verticesP = {
+      {7.0, 3.0, 0.0},  //0
+      {7.0, 5.0, 0.0},  //1
+      {10.0, 3.0, 0.0}, //2
+      {10.0, 5.0, 0.0}  //3
+  };
 
-  // Generamos el id de la textura y la activamos
-  glGenTextures(1, &textura_id);
-  glBindTexture(GL_TEXTURE_2D, textura_id);
+  triangulosP = {
+      {0, 3, 1}, {0, 2, 3}};
 
-  // Establecer parametros de la textura
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
-  // Utilizar el color de la textura
-  glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
-
-  // Transfiere los datos a la GPU
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, ancho, alto, 0, GL_RGB, GL_UNSIGNED_BYTE, pixels.data());
+  colorear();
+  calcular_normales();
+  material.activar();
 }
 
 // *****************************************************************************
@@ -377,6 +468,12 @@ ObjPLY::ObjPLY(const std::string &nombre_archivo)
   calcular_normales();
 
   material.activar();
+
+  /*cargar_imagen("./cuadros/imagen2.jpg");
+
+  calcular_coord_tex();
+
+  PreparaTextura();*/
 }
 
 // *****************************************************************************
@@ -506,6 +603,6 @@ Cilindro::Cilindro(const std::string &nombre_ply_perfil) : ObjRevolucion(nombre_
 //
 // *****************************************************************************
 
-Esfera::Esfera(const std::string &nombre_ply_perfil) : ObjRevolucion(nombre_ply_perfil) {}
+Esfera::Esfera(const std::string &nombre_ply_perfil) : ObjRevolucion(nombre_ply_perfil)  {}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////

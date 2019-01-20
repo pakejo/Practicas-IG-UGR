@@ -16,33 +16,45 @@ Escena::Escena()
 
     ejes.changeAxisSize(5000);
 
-    //Datos de la iluminacion
+    // Camara
+    Camara camara1({0.0, 0.0, +7.0}, 0);
+    Camara camara2({0.0, 0.0, -7.0}, 1);
+
+    camaras.push_back(camara1);
+    camaras.push_back(camara2);
+
+    // Datos de la iluminacion
     float cdf_alfa[4] = {1.0, 1.0, 1.0, 1.0},
           caf_alfa[4] = {1.0, 1.0, 1.0, 1.0},
           cef_alfa[4] = {1.0, 1.0, 1.0, 1.0},
-          pos_alfa[4] = {30.0, 10.0, 30.0, 0.0};
+          pos_alfa[4] = {30.0, 10.0, 30.0, 0.0}; //Direccional
 
     //Magenta
     float cdf_beta[4] = {1.0, 0.0, 1.0, 1.0},
           caf_beta[4] = {0.0, 0.0, 0.0, 1.0},
           cef_beta[4] = {1.0, 0.0, 1.0, 1.0},
-          pos_beta[4] = {30.0, 10.0, 30.0, 1.0};
+          pos_beta[4] = {30.0, 10.0, 30.0, 1.0}; //Posicional
 
-    // crear los objetos de las prácticas: Mallas o Jerárquicos....
-    cubo = new Cubo();
-    tetraedro = new Tetraedro();
-    PLY = new ObjPLY("plys/big_dodge.ply");
-    Rev = new ObjRevolucion("plys/peon.ply");
-    cilindro = new Cilindro("plys/cilindro.ply");
-    esfera = new Esfera("plys/esfera.ply");
-    cono = new Cono("plys/cono.ply");
-    jerarquico = new ObjJerarquico();
-    cuadro = new Cuadro();
-
+    // Luces
     foco = new Luz(cdf_alfa, cef_alfa, caf_alfa, pos_alfa);
     foco->nueva_luz(cdf_beta, cef_beta, caf_beta, pos_beta);
 
-    num_objetos = 9; // se usa al pulsar la tecla 'O' (rotar objeto actual)
+    // Objetos
+    cubo = new Cubo();
+    tetraedro = new Tetraedro();
+    PLY = new ObjPLY("plys/f16.ply");
+    Rev = new ObjRevolucion("plys/peon.ply");
+    esfera = new Esfera("plys/esfera.ply");
+    cilindro = new Cilindro("plys/cilindro.ply");
+    cono = new Cono("plys/cono.ply");
+    jerarquico = new ObjJerarquico();
+    cuadro = new Cuadro();
+    piramide = new Piramide();
+
+    num_objetos = 4; // se usa al pulsar la tecla 'O' (rotar objeto actual)
+
+    for(int i = 0; i<num_objetos; i++)
+        vector_cambio.push_back(0);
 }
 
 //**************************************************************************
@@ -78,14 +90,20 @@ void Escena::dibujar_objeto_actual()
     case 1: //Muestra el relleno (modo relleno)
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         glEnableClientState(GL_COLOR_ARRAY);
-        glEnable(GL_NORMALIZE);
 
-        if (shade_model)
-            glShadeModel(GL_SMOOTH);
+        if (encender_luz)
+        {
+            glEnable(GL_NORMALIZE);
+
+            if (shade_model)
+                glShadeModel(GL_SMOOTH);
+            else
+                glShadeModel(GL_FLAT);
+
+            foco->activar();
+        }
         else
-            glShadeModel(GL_FLAT);
-
-        foco->activar();
+            foco->desactivar();
         break;
 
     case 2: //Muestra los puntos (modo puntos)
@@ -107,6 +125,7 @@ void Escena::dibujar_objeto_actual()
         {
             cubo->draw(mode, cambia_modo);
             cubo->activar_Material();
+            //cubo->PreparaTextura();
         }
         break;
     case 1:
@@ -114,6 +133,7 @@ void Escena::dibujar_objeto_actual()
         {
             tetraedro->draw(mode, cambia_modo);
             tetraedro->activar_Material();
+            //tetraedro->PreparaTextura();
         }
         break;
     case 2:
@@ -121,6 +141,7 @@ void Escena::dibujar_objeto_actual()
         {
             PLY->draw(mode, cambia_modo);
             PLY->activar_Material();
+            //PLY->PreparaTextura();
         }
         break;
     case 3:
@@ -128,6 +149,7 @@ void Escena::dibujar_objeto_actual()
         {
             Rev->draw(mode, cambia_modo);
             Rev->activar_Material();
+            //Rev->PreparaTextura();
         }
         break;
     case 4:
@@ -135,6 +157,7 @@ void Escena::dibujar_objeto_actual()
         {
             cilindro->draw(mode, cambia_modo);
             cilindro->activar_Material();
+            //cilindro->PreparaTextura();
         }
         break;
     case 5:
@@ -142,6 +165,7 @@ void Escena::dibujar_objeto_actual()
         {
             esfera->draw(mode, cambia_modo);
             esfera->activar_Material();
+            //esfera->PreparaTextura();
         }
         break;
     case 6:
@@ -149,6 +173,7 @@ void Escena::dibujar_objeto_actual()
         {
             cono->draw(mode, cambia_modo);
             cono->activar_Material();
+            //cono->PreparaTextura();
         }
         break;
     case 7:
@@ -162,6 +187,13 @@ void Escena::dibujar_objeto_actual()
         {
             cuadro->draw(mode, cambia_modo);
             cuadro->PreparaTextura();
+        }
+        break;
+    case 9:
+        if (piramide != nullptr)
+        {
+            piramide->draw(mode, cambia_modo);
+            piramide->PreparaTextura();
         }
         break;
     default:
@@ -183,7 +215,8 @@ void Escena::dibujar()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Limpiar la pantalla
     change_observer();
     ejes.draw();
-    dibujar_objeto_actual();
+    //dibujar_objeto_actual();
+    dibujaSeleccion();
 }
 
 //**************************************************************************
@@ -213,7 +246,6 @@ bool Escena::teclaPulsada(unsigned char tecla, int x, int y)
     case 'M':
         // cambiar el modo de vista
         mode = (mode + 1) % 4;
-
         break;
     case 'V':
         //Se cambia el modo de dibujo de inmediato a diferido
@@ -229,6 +261,7 @@ bool Escena::teclaPulsada(unsigned char tecla, int x, int y)
             Rev->draw(mode, cambia_modo);
             jerarquico->draw(mode, cambia_modo);
             cuadro->draw(mode, cambia_modo);
+            piramide->draw(mode, cambia_modo);
         }
         else
         {
@@ -242,6 +275,7 @@ bool Escena::teclaPulsada(unsigned char tecla, int x, int y)
             Rev->draw(mode, cambia_modo);
             jerarquico->draw(mode, cambia_modo);
             cuadro->draw(mode, cambia_modo);
+            piramide->draw(mode, cambia_modo);
         }
         break;
     case 'P':
@@ -273,11 +307,16 @@ bool Escena::teclaPulsada(unsigned char tecla, int x, int y)
             jerarquico->decelerar();
         break;
     case 'I':
+        // Activar animacion de la luz
         luz = !luz;
         this->conmutarAnimaciones();
         break;
     case 'S':
+        // Cambia el modo de iluminacion
         shade_model = !shade_model;
+        break;
+    case 'L':
+        encender_luz = !encender_luz;
         break;
     }
     return false;
@@ -288,23 +327,15 @@ void Escena::teclaEspecial(int Tecla1, int x, int y)
 {
     switch (Tecla1)
     {
-    case GLUT_KEY_LEFT:
-        Observer_angle_y--;
+    case GLUT_KEY_F1:
+        camaraActiva = 0;
+        std::cout <<"Activada camara perspectiva" <<std::endl;
+        this->change_projection(float(Width) / float(Height));
         break;
-    case GLUT_KEY_RIGHT:
-        Observer_angle_y++;
-        break;
-    case GLUT_KEY_UP:
-        Observer_angle_x--;
-        break;
-    case GLUT_KEY_DOWN:
-        Observer_angle_x++;
-        break;
-    case GLUT_KEY_PAGE_UP:
-        Observer_distance *= 1.2;
-        break;
-    case GLUT_KEY_PAGE_DOWN:
-        Observer_distance /= 1.2;
+    case GLUT_KEY_F2:
+        camaraActiva = 1;
+        std::cout <<"Activada camara ortogonal" <<std::endl;
+        this->change_projection(float(Width) / float(Height));
         break;
     }
 
@@ -320,11 +351,7 @@ void Escena::teclaEspecial(int Tecla1, int x, int y)
 
 void Escena::change_projection(const float ratio_xy)
 {
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    const float wy = 0.84 * Front_plane;
-    const float wx = ratio_xy * wy;
-    glFrustum(-wx, +wx, -wy, +wy, Front_plane, Back_plane);
+    camaras[camaraActiva].setProyection(ratio_xy);
 }
 //**************************************************************************
 // Funcion que se invoca cuando cambia el tamaño de la ventana
@@ -344,12 +371,9 @@ void Escena::redimensionar(int newWidth, int newHeight)
 
 void Escena::change_observer()
 {
-    // posicion del observador
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-    glTranslatef(0.0, 0.0, -Observer_distance);
-    glRotatef(Observer_angle_x, 1.0, 0.0, 0.0);
-    glRotatef(Observer_angle_y, 0.0, 1.0, 0.0);
+    camaras[camaraActiva].setObserver();
 }
 
 //***************************************************************************
@@ -388,90 +412,190 @@ void Escena::conmutarAnimaciones()
 }
 
 //***************************************************************************
-// Constructor de un objeto Luz
+// Funcion encargada de comprobar si se ha pulsado boton del raton
 //***************************************************************************
-Luz::Luz(float cdf[], float cef[], float caf[], float posf[])
+
+void Escena::clickRaton(int boton, int estado, int x, int y)
 {
-    Foco miFoco;
-
-    for (int i = 0; i < 4; ++i)
+    // Movemos la camara
+    if (boton == GLUT_RIGHT_BUTTON)
     {
-        miFoco.color_ambiental[i] = caf[i];
-        miFoco.color_difuso[i] = cdf[i];
-        miFoco.color_especular[i] = cef[i];
-        miFoco.pos[i] = posf[i];
-    }
-
-    datos_luces.push_back(miFoco);
-}
-
-//***************************************************************************
-// Funcion encargada de activar la iluminacion de la escena
-//***************************************************************************
-
-void Luz::activar() //Cambiar
-{
-    //Habilitamos iluminacion
-    glEnable(GL_LIGHTING);
-
-    for (int i = 0; i < datos_luces.size(); ++i)
-    {
-        //Habilitamos luz 0
-        glEnable(luces[i]);
-
-        //Configuracion del color de la fuente
-        glLightfv(luces[i], GL_AMBIENT, datos_luces[i].color_ambiental);
-        glLightfv(luces[i], GL_DIFFUSE, datos_luces[i].color_difuso);
-        glLightfv(luces[i], GL_SPECULAR, datos_luces[i].color_especular);
-
-        //Configuracion de la posicion de la fuente
-
-        if (i == 1)
+        if (estado == GLUT_DOWN)
         {
-            glMatrixMode(GL_MODELVIEW);
-            glPushMatrix();
-            glLoadIdentity();
-            glMultMatrixd(translate);
-            glRotatef(angulo_rotacion, 0.0, 1.0, 0.0);
-            glLightfv(luces[i], GL_POSITION, datos_luces[i].pos);
-            glPopMatrix();
+            seMueveCamara = true;
+            xant = x;
+            yant = y;
         }
         else
-            glLightfv(luces[i], GL_POSITION, datos_luces[i].pos);
+        {
+            seMueveCamara = false;
+            xant = 0;
+            yant = 0;
+        }
     }
-}
-
-//***************************************************************************
-// Funcion encargada de deactivar la iluminacion de la escena
-//***************************************************************************
-
-void Luz::desactivar()
-{
-    glDisable(GL_LIGHTING);
-}
-
-//***************************************************************************
-// Funcion encargada de añadir una nueva luz
-//***************************************************************************
-void Luz::nueva_luz(float cdf[], float cef[], float caf[], float posf[])
-{
-    Foco nuevo;
-
-    for (int i = 0; i < 4; ++i)
+    // Hacemos zoom
+    else if ((boton == GLUT_LEFT_BUTTON) && (estado == GLUT_DOWN))
     {
-        nuevo.color_ambiental[i] = caf[i];
-        nuevo.color_difuso[i] = cdf[i];
-        nuevo.color_especular[i] = cef[i];
-        nuevo.pos[i] = posf[i];
+        seMueveCamara = false;
+        seHaceZoom = true;
+        zoomAnt = y;
     }
-
-    datos_luces.push_back(nuevo);
+    // Se selcciona un objeto 
+    else if((boton == GLUT_LEFT_BUTTON) && (estado == GLUT_UP))
+        this->pick_color(x,y);
 }
 
-//***************************************************************************
-// Funcion encargada de incrementar el angulo de rotacion de la luz
-//***************************************************************************
-void Luz::incrementa_angulo()
+void Escena::ratonMovido(int x, int y)
 {
-    angulo_rotacion += 0.5;
+    float dx, dy;
+
+    if (seMueveCamara)
+    {
+        dx = xant - x;
+        dy = yant - y;
+
+        camaras[camaraActiva].mover(dx, dy);
+    }
+    else if (seHaceZoom)
+    {
+        dy = zoomAnt - y;
+
+        camaras[camaraActiva].zoom(dy);
+    }
+
+    glutPostRedisplay();
+}
+
+/////////////////////////////////////////////////////////////////////
+void Escena::dibujaSeleccionFalso()
+{
+    glDisable(GL_DITHER);
+    glDisable(GL_LIGHTING);
+    glDisable(GL_TEXTURE);
+
+    glPushMatrix();
+        glPushMatrix();
+        glTranslatef(0, 1.4, -1);
+        glScalef(0.3,0.3,0.3);
+        glColor3ub(75, 0, 130);
+        PLY->draw(mode, cambia_modo);
+        glPopMatrix();
+    glPopMatrix();
+
+    glPushMatrix();
+        glPushMatrix();
+        glTranslatef(-1, 0.8, 1);
+        glScalef(0.1,0.1,0.1);
+        glColor3ub(0, 255, 127);
+        esfera->draw(mode, cambia_modo);
+        glPopMatrix();
+    glPopMatrix();
+
+    glPushMatrix();
+        glPushMatrix();
+        glTranslatef(-1, 1, -1);
+        glColor3ub(25, 25, 112);
+        cubo->draw(mode, cambia_modo);
+        glPopMatrix();
+    glPopMatrix();
+
+
+    glPushMatrix();
+        glPushMatrix();
+        glTranslatef(1, 0.5, 1);
+        glColor3ub(64, 224, 208);
+        tetraedro->draw(mode, cambia_modo);
+        glPopMatrix();
+    glPopMatrix();
+}
+
+
+void Escena::dibujaSeleccion()
+{
+    glDisable(GL_DITHER);
+    glDisable(GL_LIGHTING);
+    glDisable(GL_TEXTURE);
+
+    glPushMatrix();
+        glPushMatrix();
+        glTranslatef(0, 1.4, -1);
+        glScalef(0.3,0.3,0.3);
+        color_obj.push_back({75,0,130});
+        if(vector_cambio[0] == 1)
+            glColor3ub(255,255,0);
+        else
+            glColor3ub(75,0,130);
+        PLY->draw(mode, cambia_modo);
+        glPopMatrix();
+    glPopMatrix();
+
+    glPushMatrix();
+        glPushMatrix();
+        glTranslatef(-1, 0.8, 1);
+        glScalef(0.1,0.1,0.1);
+        color_obj.push_back({0,255,127});
+        if(vector_cambio[1] == 1)
+            glColor3ub(255,255,0);
+        else
+            glColor3ub(0,255,127);
+        esfera->draw(mode, cambia_modo);
+        glPopMatrix();
+    glPopMatrix();
+
+    glPushMatrix();
+        glPushMatrix();
+        glTranslatef(-1, 1, -1);
+        color_obj.push_back({25,25,112});
+        if(vector_cambio[2] == 1)
+            glColor3ub(255,255,0);
+        else
+            glColor3ub(25,25,112);
+        cubo->draw(mode, cambia_modo);
+        glPopMatrix();
+    glPopMatrix();
+
+
+    glPushMatrix();
+        glPushMatrix();
+        glTranslatef(1, 0.5, 1);
+        color_obj.push_back({64, 224, 208});
+        if(vector_cambio[3] == 1)
+            glColor3ub(255,255,0);
+        else
+            glColor3ub(64, 224, 208);
+        tetraedro->draw(mode, cambia_modo);
+        glPopMatrix();
+    glPopMatrix();
+
+}
+
+void Escena::pick_color(int x, int y)
+{
+    GLint viewport[4];
+    unsigned char pixel[3];
+    int indice;
+
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    dibujaSeleccionFalso();
+
+    glGetIntegerv(GL_VIEWPORT, viewport);
+    glReadBuffer(GL_BACK);
+    glReadPixels(x, viewport[3] - y, 1, 1, GL_RGB, GL_UNSIGNED_BYTE, (GLubyte *)&pixel[0]);
+
+    printf("valor X: %d, valor Y: %d, color %d, %d, %d \n",x,y,pixel[0],pixel[1],pixel[2]);
+
+    for(int i=0; i<num_objetos; i++)
+        if( (int)pixel[0] == color_obj[i](0) && (int)pixel[1] == color_obj[i](1) && (int)pixel[2] == color_obj[i](2))
+            indice = i;
+    
+    if((indice >= 0) && (indice <=num_objetos))
+    {
+        if(vector_cambio[indice] == 1)
+            vector_cambio[indice] = 0;
+        else
+            vector_cambio[indice] = 1;
+    }
+
+    this->dibujaSeleccion();
+    glutPostRedisplay();
 }

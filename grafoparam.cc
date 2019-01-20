@@ -77,6 +77,7 @@ void GrafoParam::draw(const int p_modo_vis, const bool p_usar_diferido)
       // dibujar objetos
       glPushMatrix();
             //examen();
+            glScalef(0.25, 0.25, 0.25);
             dibujo_completo();
       glPopMatrix();
 }

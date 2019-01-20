@@ -4,110 +4,95 @@
 #include "ejes.h"
 #include "malla.h"
 #include "jerarquico.h"
-
-struct Foco
-{
-  //Colores de la luz
-  float
-      color_difuso[4],
-      color_especular[4],
-      color_ambiental[4];
-
-  //Posicion de la luz
-  float pos[4];
-};
-
-class Luz
-{
-private:
-  //Vector con los datos de las luces activas
-  std::vector<Foco> datos_luces;
-
-  //Variables para saber la luz a usar
-  std::vector<GLenum> luces = {GL_LIGHT0, GL_LIGHT1, GL_LIGHT2, GL_LIGHT3, GL_LIGHT4, GL_LIGHT5, GL_LIGHT6, GL_LIGHT7};
-
-  //Angulo de rotacion de la luz
-  float angulo_rotacion = 0.0;
-
-  //Matriz identidad
-  GLdouble translate[16] = {1,0,0,0,0,1,0,0,0,0,1,0,1,0,0,1};
-
-public:
-  Luz(float cdf[], float cef[], float caf[], float posf[]);
-
-  //Activacion de la iluminacion
-  void activar();
-
-  //Desactivacion de la iluminacion
-  void desactivar();
-
-  //Añadir un nuevo foco
-  void nueva_luz(float cdf[], float cef[], float caf[], float posf[]);
-
-  //Incremento del angulo de rotacion
-  void incrementa_angulo();
-};
+#include "luz.h"
+#include "camara.h"
 
 class Escena
 {
 
-private:
-  Ejes ejes;
+  private:
+    Ejes ejes;
 
-  // variables que definen la posicion de la camara en coordenadas polares
-  GLfloat Observer_distance;
-  GLfloat Observer_angle_x;
-  GLfloat Observer_angle_y;
+    // variables que definen la posicion de la camara en coordenadas polares
+    GLfloat Observer_distance;
+    GLfloat Observer_angle_x;
+    GLfloat Observer_angle_y;
 
-  // variables que controlan la ventana y la transformacion de perspectiva
-  GLfloat Width, Height, Front_plane, Back_plane;
+    // variables que controlan la ventana y la transformacion de perspectiva
+    GLfloat Width, Height, Front_plane, Back_plane;
 
-  void clear_window();
-  void dibujar_objeto_actual();
+    void clear_window();
+    void dibujar_objeto_actual();
 
-  // Transformación de cámara
-  void change_projection(const float ratio_xy);
-  void change_observer();
+    // Transformación de cámara
+    void change_projection(const float ratio_xy);
+    void change_observer();
 
-  void conmutarAnimaciones();
+    void conmutarAnimaciones();
 
-  int objeto_actual = 0, // objeto actual (el que se visualiza)
-      num_objetos = 0,   // número de objetos (actualizado al crear los objetos en el constructor)
-      mode = 0;          // cambia el modo de visualizacion
+    int objeto_actual = 0, // objeto actual (el que se visualiza)
+        num_objetos = 0,   // número de objetos (actualizado al crear los objetos en el constructor)
+        mode = 0;          // cambia el modo de visualizacion
 
-  bool cambia_modo = false; //Indica modo GPU
-  bool shade_model = true;
+    bool cambia_modo = false; //Indica modo GPU
+    bool shade_model = true;
 
-  bool activarAnimaciones;
-  bool luz;
+    // Iluminacion
+    bool activarAnimaciones;
+    bool luz;
+    bool encender_luz;
 
-  // Objetos de la escena
-  Cubo *cubo = nullptr;
-  Tetraedro *tetraedro = nullptr;
-  ObjPLY *PLY = nullptr;
-  ObjRevolucion *Rev = nullptr;
-  Cono *cono = nullptr;
-  Cilindro *cilindro = nullptr;
-  Esfera *esfera = nullptr;
-  ObjJerarquico *jerarquico = nullptr;
-  Cuadro *cuadro = nullptr;
+    //  Camaras
+    int camaraActiva = 0;
+    float xant;
+    float yant;
+    float zoomAnt;
 
-  Luz *foco = nullptr;
+    bool seMueveCamara;
+    bool seHaceZoom;
 
-public:
-  Escena();
-  void inicializar(int UI_window_width, int UI_window_height);
-  void redimensionar(int newWidth, int newHeight);
+    std::vector<Camara> camaras;
 
-  // Dibujar
-  void dibujar();
+    //Cambio por seleccion
+    std::vector<int> vector_cambio;
+    std::vector<Tupla3i> color_obj;
 
-  // Interacción con la escena
-  bool teclaPulsada(unsigned char Tecla1, int x, int y);
-  void teclaEspecial(int Tecla1, int x, int y);
 
-  //Animaciones
-  void mgeDesocupado();
+    // Objetos de la escena
+    Cubo *cubo = nullptr;
+    Tetraedro *tetraedro = nullptr;
+    ObjPLY *PLY = nullptr;
+    ObjRevolucion *Rev = nullptr;
+    Cono *cono = nullptr;
+    Cilindro *cilindro = nullptr;
+    Esfera *esfera = nullptr;
+    ObjJerarquico *jerarquico = nullptr;
+    Cuadro *cuadro = nullptr;
+    Piramide *piramide = nullptr;
+
+    Luz *foco = nullptr;
+
+  public:
+    Escena();
+    void inicializar(int UI_window_width, int UI_window_height);
+    void redimensionar(int newWidth, int newHeight);
+
+    // Dibujar
+    void dibujar();
+
+    // Interacción con la escena
+    bool teclaPulsada(unsigned char Tecla1, int x, int y);
+    void teclaEspecial(int Tecla1, int x, int y);
+
+    //Animaciones
+    void mgeDesocupado();
+
+    //Camaras
+    void dibujaSeleccionFalso();
+    void dibujaSeleccion();
+    void clickRaton(int boton, int estado, int x, int y);
+    void ratonMovido(int x, int y);
+    void pick_color(int x, int y);
 };
 
 #endif
